@@ -1,4 +1,4 @@
-// app.js - Inventory Manager Pro v17.1.5 with Bottom Action Bar
+// app.js - Inventory Manager Pro v18.1.0 with Bottom Action Bar
 
 // Get Supabase client from window
 const supabaseClient = window.supabaseClient;
