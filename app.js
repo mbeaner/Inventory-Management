@@ -1,4 +1,4 @@
-// app.js - Inventory Manager Pro v17.1.0 with Dashboard
+// app.js - Inventory Manager Pro v17.1.4 with Dashboard
 
 // Get Supabase client from window
 const supabaseClient = window.supabaseClient;
@@ -1438,6 +1438,22 @@ function showPartDetails(id) {
       : '');
   document.getElementById('partDetailsContent').innerHTML = html;
   displayPartPhotoInDetails(p);
+
+  // Get buttons and set visibility based on permissions
+  const editBtn = document.getElementById('detailsEditBtn');
+  const logBtn = document.getElementById('detailsLogBtn');
+
+  const canEdit = windowCurrentPermissions.canEditParts || isAdmin;
+  const canLog = windowCurrentPermissions.canLogUsage || isAdmin;
+
+  if (editBtn) {
+    editBtn.style.display = canEdit ? 'inline-flex' : 'none';
+  }
+
+  if (logBtn) {
+    logBtn.style.display = canLog ? 'inline-flex' : 'none';
+  }
+
   showModal('partDetailsModal');
 }
 
