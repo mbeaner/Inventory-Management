@@ -6,7 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover"
     />
-    <title>Inventory Manager Pro</title>
+    <meta name="theme-color" content="#1e466e" />
+    <title>Inventory Manager Pro v19.0.0</title>
+
+    <!-- Stylesheets & Libraries -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -26,7 +29,9 @@
     </div>
 
     <div class="container">
-      <!-- Auth Container (shown when not logged in) -->
+      <!-- ============================================= -->
+      <!-- AUTHENTICATION CONTAINER (shown when logged out) -->
+      <!-- ============================================= -->
       <div id="authContainer" class="auth-container" style="display: none">
         <div class="auth-card">
           <div class="auth-header">
@@ -35,6 +40,7 @@
             <p>Sign in to manage your inventory</p>
           </div>
 
+          <!-- Auth Tabs -->
           <div class="auth-tabs">
             <button id="loginTab" class="auth-tab active">Login</button>
             <button id="registerTab" class="auth-tab">Register</button>
@@ -94,17 +100,23 @@
             </button>
           </div>
 
+          <!-- Auth Message Display -->
           <div id="authMessage" class="auth-message"></div>
         </div>
       </div>
 
-      <!-- Main App Container (hidden until logged in) -->
+      <!-- ============================================= -->
+      <!-- MAIN APP CONTAINER (shown when logged in) -->
+      <!-- ============================================= -->
       <div id="appContainer" style="display: none">
+        <!-- === HEADER SECTION === -->
         <div class="header">
           <h1>
             <i class="fas fa-cubes"></i> Inventory Manager Pro
-            <span class="version-badge">v18.1.2</span>
+            <span class="version-badge">v19.0.0</span>
           </h1>
+
+          <!-- Stats Display -->
           <div class="stats-bar">
             <div class="stat-card">
               <i class="fas fa-boxes"></i> <span id="totalPartsStat">0</span>
@@ -113,50 +125,27 @@
               <i class="fas fa-exclamation-triangle"></i>
               <span id="lowStockStat">0</span>
             </div>
-            <!-- Desktop buttons (hidden on mobile via CSS) -->
-            <button
-              id="darkModeToggleDesktop"
-              class="btn btn-secondary"
-              style="background: #1e466e; color: white"
-            >
-              <i class="fas fa-moon"></i> Dark
-            </button>
-            <button
-              id="adminPanelBtnDesktop"
-              class="btn btn-secondary"
-              style="display: none; background: #7c3aed; color: white"
-            >
-              <i class="fas fa-users-cog"></i> Admin
-            </button>
-            <button
-              id="logoutBtnDesktop"
-              class="btn btn-secondary"
-              style="background: #e76f51; color: white"
-            >
-              <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
           </div>
-          <!-- Action buttons row - compact on mobile -->
-          <div class="mobile-action-row">
+
+          <!-- Header Action Buttons (Dark Mode, Admin, Logout) -->
+          <div class="header-buttons">
             <button id="darkModeToggle" class="btn btn-secondary">
-              <i class="fas fa-moon"></i> <span class="btn-text">Dark</span>
+              <i class="fas fa-moon"></i> Dark
             </button>
             <button
               id="adminPanelBtn"
               class="btn btn-secondary"
               style="display: none"
             >
-              <i class="fas fa-users-cog"></i>
-              <span class="btn-text">Admin</span>
+              <i class="fas fa-users-cog"></i> Admin
             </button>
             <button id="logoutBtn" class="btn btn-secondary">
-              <i class="fas fa-sign-out-alt"></i>
-              <span class="btn-text">Logout</span>
+              <i class="fas fa-sign-out-alt"></i> Logout
             </button>
           </div>
         </div>
 
-        <!-- Desktop Action Bar (hidden on mobile) -->
+        <!-- === DESKTOP ACTION BAR === -->
         <div class="action-bar">
           <label class="file-label" for="excelUpload"
             ><i class="fas fa-upload"></i> Import</label
@@ -181,7 +170,7 @@
           </button>
         </div>
 
-        <!-- Desktop Tab Navigation -->
+        <!-- === DESKTOP TAB NAVIGATION === -->
         <div class="tab-nav desktop-nav">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
           <button class="tab-btn" data-tab="all">All Parts</button>
@@ -190,11 +179,10 @@
           <button class="tab-btn" data-tab="logs">Usage Logs</button>
         </div>
 
-        <!-- Mobile Hamburger Menu -->
+        <!-- === MOBILE HAMBURGER MENU === -->
         <div class="mobile-nav">
           <div class="hamburger-menu" id="hamburgerMenu">
-            <i class="fas fa-bars"></i>
-            <span>Menu</span>
+            <i class="fas fa-bars"></i><span>Menu</span>
           </div>
           <div class="mobile-dropdown" id="mobileDropdown">
             <button class="mobile-tab-btn" data-tab="dashboard">
@@ -209,8 +197,11 @@
           </div>
         </div>
 
+        <!-- ============================================= -->
         <!-- DASHBOARD TAB -->
+        <!-- ============================================= -->
         <div id="tab-dashboard" class="tab-content">
+          <!-- Dashboard Header -->
           <div class="dashboard-header">
             <h2><i class="fas fa-chart-line"></i> Inventory Dashboard</h2>
             <button id="refreshDashboardBtn" class="btn btn-secondary">
@@ -218,7 +209,7 @@
             </button>
           </div>
 
-          <!-- KPI Cards -->
+          <!-- KPI Cards Grid -->
           <div class="dashboard-kpi-grid">
             <div class="kpi-card">
               <div class="kpi-icon"><i class="fas fa-cubes"></i></div>
@@ -235,9 +226,7 @@
               <div class="kpi-info">
                 <div class="kpi-value" id="kpiLowStock">0</div>
                 <div class="kpi-label">Low Stock</div>
-                <div class="kpi-trend" id="kpiLowStockTrend">
-                  Below baseline
-                </div>
+                <div class="kpi-trend">Below baseline</div>
               </div>
             </div>
             <div class="kpi-card critical">
@@ -245,9 +234,7 @@
               <div class="kpi-info">
                 <div class="kpi-value" id="kpiCritical">0</div>
                 <div class="kpi-label">Critical Stock</div>
-                <div class="kpi-trend" id="kpiCriticalTrend">
-                  Below 50% of baseline
-                </div>
+                <div class="kpi-trend">Below 50% of baseline</div>
               </div>
             </div>
             <div class="kpi-card">
@@ -255,7 +242,7 @@
               <div class="kpi-info">
                 <div class="kpi-value" id="kpiLogsCount">0</div>
                 <div class="kpi-label">Logs (30 days)</div>
-                <div class="kpi-trend" id="kpiLogsTrend">Last 30 days</div>
+                <div class="kpi-trend">Last 30 days</div>
               </div>
             </div>
           </div>
@@ -307,11 +294,15 @@
           </div>
         </div>
 
+        <!-- ============================================= -->
+        <!-- ALL PARTS TAB -->
+        <!-- ============================================= -->
         <div id="tab-all" class="tab-content">
+          <!-- Search and Pagination Controls -->
           <div class="search-section">
             <div class="search-box">
-              <i class="fas fa-search"></i
-              ><input
+              <i class="fas fa-search"></i>
+              <input
                 type="text"
                 id="allSearchInput"
                 placeholder="Search parts..."
@@ -323,11 +314,14 @@
                 <select id="allRowsPerPage">
                   <option value="25">25</option>
                   <option value="50" selected>50</option>
-                  <option value="100">100</option></select
-                ><i class="fas fa-chevron-down select-arrow"></i>
+                  <option value="100">100</option>
+                </select>
+                <i class="fas fa-chevron-down select-arrow"></i>
               </div>
             </div>
           </div>
+
+          <!-- Parts Table -->
           <div class="table-wrapper">
             <table>
               <thead>
@@ -350,18 +344,19 @@
               <tbody id="allPartsBody"></tbody>
             </table>
           </div>
+
+          <!-- Pagination -->
           <div id="allPagination" class="pagination"></div>
         </div>
 
+        <!-- ============================================= -->
+        <!-- NEED ORDER TAB -->
+        <!-- ============================================= -->
         <div id="tab-needorder" class="tab-content">
           <div class="search-section">
             <div class="search-box">
-              <i class="fas fa-search"></i
-              ><input
-                type="text"
-                id="needSearchInput"
-                placeholder="Search..."
-              />
+              <i class="fas fa-search"></i>
+              <input type="text" id="needSearchInput" placeholder="Search..." />
             </div>
           </div>
           <div class="table-wrapper">
@@ -378,14 +373,16 @@
               <tbody id="needOrderBody"></tbody>
             </table>
           </div>
-          <div id="needPagination" class="pagination"></div>
         </div>
 
+        <!-- ============================================= -->
+        <!-- CRITICAL TAB -->
+        <!-- ============================================= -->
         <div id="tab-critical" class="tab-content">
           <div class="search-section">
             <div class="search-box">
-              <i class="fas fa-search"></i
-              ><input
+              <i class="fas fa-search"></i>
+              <input
                 type="text"
                 id="criticalSearchInput"
                 placeholder="Search..."
@@ -406,19 +403,22 @@
               <tbody id="criticalBody"></tbody>
             </table>
           </div>
-          <div id="criticalPagination" class="pagination"></div>
         </div>
 
+        <!-- ============================================= -->
+        <!-- USAGE LOGS TAB -->
+        <!-- ============================================= -->
         <div id="tab-logs" class="tab-content">
           <div class="logs-container">
+            <!-- Logs Header -->
             <div class="logs-header">
               <span
                 ><i class="fas fa-history"></i> Usage History
                 <span id="logCount"></span
               ></span>
               <div class="search-box" style="max-width: 260px">
-                <i class="fas fa-search"></i
-                ><input
+                <i class="fas fa-search"></i>
+                <input
                   type="text"
                   id="logsSearchInput"
                   placeholder="Filter..."
@@ -426,7 +426,7 @@
               </div>
             </div>
 
-            <!-- Column Headers for Logs -->
+            <!-- Column Headers (Desktop) -->
             <div class="logs-column-headers">
               <div class="log-header-date">Date & Time</div>
               <div class="log-header-part">Part</div>
@@ -435,37 +435,39 @@
               <div class="log-header-note">Note</div>
             </div>
 
+            <!-- Logs List Container -->
             <div id="logsListContainer"></div>
           </div>
         </div>
 
-        <!-- BOTTOM ACTION BAR (INSIDE appContainer - hidden when logged out) -->
+        <!-- ============================================= -->
+        <!-- MOBILE BOTTOM ACTION BAR -->
+        <!-- ============================================= -->
         <div class="bottom-action-bar">
           <div class="bottom-action-grid">
             <button class="bottom-action-btn" id="mobileAddPartBtn">
-              <i class="fas fa-plus-circle"></i>
-              <span>Add</span>
+              <i class="fas fa-plus-circle"></i><span>Add</span>
             </button>
             <button class="bottom-action-btn" id="mobileLogUsageBtn">
-              <i class="fas fa-pen-alt"></i>
-              <span>Log</span>
+              <i class="fas fa-pen-alt"></i><span>Log</span>
             </button>
             <button class="bottom-action-btn" id="mobileScanBtn">
-              <i class="fas fa-qrcode"></i>
-              <span>Scan</span>
+              <i class="fas fa-qrcode"></i><span>Scan</span>
             </button>
             <button class="bottom-action-btn" id="mobileReportBtn">
-              <i class="fas fa-chart-line"></i>
-              <span>Report</span>
+              <i class="fas fa-chart-line"></i><span>Report</span>
             </button>
             <button class="bottom-action-btn" id="mobileImportBtn">
-              <i class="fas fa-upload"></i>
-              <span>Import</span>
+              <i class="fas fa-upload"></i><span>Import</span>
             </button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- ============================================= -->
+    <!-- MODALS -->
+    <!-- ============================================= -->
 
     <!-- QR Scanner Modal -->
     <div id="qrScannerModal" class="modal">
@@ -516,9 +518,7 @@
         <span class="close-modal" data-modal="partDetailsModal">&times;</span>
         <h3><i class="fas fa-info-circle"></i> Part Details</h3>
         <div id="partDetailsContent" class="details-grid"></div>
-        <div class="photo-container">
-          <div id="photoDisplay"></div>
-        </div>
+        <div class="photo-container"><div id="photoDisplay"></div></div>
         <div class="details-actions">
           <button id="detailsEditBtn" class="btn btn-secondary">
             <i class="fas fa-edit"></i> Edit Part
@@ -530,7 +530,7 @@
       </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Edit Part Modal -->
     <div id="editModal" class="modal">
       <div class="modal-card">
         <span class="close-modal" data-modal="editModal">&times;</span>
@@ -553,9 +553,9 @@
           <div class="form-group">
             <label>Current Quantity</label>
             <div class="qty-adjust-group">
-              <button id="decrementQtyBtn">-</button
-              ><span class="qty-value" id="editCurrentQtyDisplay">0</span
-              ><button id="incrementQtyBtn">+</button>
+              <button id="decrementQtyBtn">-</button>
+              <span class="qty-value" id="editCurrentQtyDisplay">0</span>
+              <button id="incrementQtyBtn">+</button>
             </div>
             <input type="hidden" id="editCurrentQty" />
           </div>
@@ -624,7 +624,7 @@
       </div>
     </div>
 
-    <!-- Usage Modal -->
+    <!-- Log Usage Modal -->
     <div id="usageModal" class="modal">
       <div class="modal-card">
         <span class="close-modal" data-modal="usageModal">&times;</span>
@@ -732,7 +732,6 @@
       <div class="modal-card" style="max-width: 700px">
         <span class="close-modal" data-modal="adminPanelModal">&times;</span>
         <h3><i class="fas fa-users-cog"></i> Admin Panel - User Management</h3>
-
         <div class="admin-stats">
           <div class="admin-stat-card">
             <i class="fas fa-users"></i>
@@ -749,7 +748,6 @@
             </div>
           </div>
         </div>
-
         <div class="admin-search">
           <i class="fas fa-search"></i>
           <input
@@ -758,13 +756,11 @@
             placeholder="Search users by email..."
           />
         </div>
-
         <div class="admin-user-list" id="adminUserList">
           <div style="text-align: center; padding: 20px">
             <i class="fas fa-spinner fa-pulse"></i> Loading users...
           </div>
         </div>
-
         <div class="modal-actions">
           <button id="closeAdminPanelBtn" class="btn btn-secondary">
             Close
@@ -780,92 +776,92 @@
           >&times;</span
         >
         <h3><i class="fas fa-user-cog"></i> User Permissions</h3>
-
         <div id="userPermissionsContent">
           <div class="user-permissions-header" id="userPermissionsHeader"></div>
-
           <div class="permissions-section">
             <h4><i class="fas fa-cubes"></i> Parts Permissions</h4>
             <div class="permission-item">
               <div class="permission-info">
-                <strong>Add Parts</strong>
-                <small>Can create new parts</small>
+                <strong>Add Parts</strong><small>Can create new parts</small>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="permAddParts" />
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="toggle-switch"
+                ><input type="checkbox" id="permAddParts" /><span
+                  class="toggle-slider"
+                ></span
+              ></label>
             </div>
             <div class="permission-item">
               <div class="permission-info">
-                <strong>Edit Parts</strong>
-                <small>Can modify existing parts (including quantity)</small>
+                <strong>Edit Parts</strong
+                ><small>Can modify existing parts (including quantity)</small>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="permEditParts" />
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="toggle-switch"
+                ><input type="checkbox" id="permEditParts" /><span
+                  class="toggle-slider"
+                ></span
+              ></label>
             </div>
             <div class="permission-item">
               <div class="permission-info">
-                <strong>Delete Parts</strong>
-                <small>Can remove parts from inventory</small>
+                <strong>Delete Parts</strong
+                ><small>Can remove parts from inventory</small>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="permDeleteParts" />
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="toggle-switch"
+                ><input type="checkbox" id="permDeleteParts" /><span
+                  class="toggle-slider"
+                ></span
+              ></label>
             </div>
           </div>
-
           <div class="permissions-section">
             <h4><i class="fas fa-history"></i> Logs Permissions</h4>
             <div class="permission-item">
               <div class="permission-info">
-                <strong>Log Usage</strong>
-                <small>Can record part usage (decreases quantity)</small>
+                <strong>Log Usage</strong
+                ><small>Can record part usage (decreases quantity)</small>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="permLogUsage" />
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="toggle-switch"
+                ><input type="checkbox" id="permLogUsage" /><span
+                  class="toggle-slider"
+                ></span
+              ></label>
             </div>
             <div class="permission-item">
               <div class="permission-info">
-                <strong>Edit Logs</strong>
-                <small>Can modify log entries</small>
+                <strong>Edit Logs</strong><small>Can modify log entries</small>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="permEditLogs" />
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="toggle-switch"
+                ><input type="checkbox" id="permEditLogs" /><span
+                  class="toggle-slider"
+                ></span
+              ></label>
             </div>
             <div class="permission-item">
               <div class="permission-info">
-                <strong>Delete Logs</strong>
-                <small>Can remove log entries</small>
+                <strong>Delete Logs</strong
+                ><small>Can remove log entries</small>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="permDeleteLogs" />
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="toggle-switch"
+                ><input type="checkbox" id="permDeleteLogs" /><span
+                  class="toggle-slider"
+                ></span
+              ></label>
             </div>
           </div>
-
           <div class="permissions-section">
             <h4><i class="fas fa-tools"></i> Admin Rights</h4>
             <div class="permission-item">
               <div class="permission-info">
-                <strong>Admin Access</strong>
-                <small>Full system access including user management</small>
+                <strong>Admin Access</strong
+                ><small>Full system access including user management</small>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="permIsAdmin" />
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="toggle-switch"
+                ><input type="checkbox" id="permIsAdmin" /><span
+                  class="toggle-slider"
+                ></span
+              ></label>
             </div>
           </div>
-
           <div class="user-permissions-actions">
             <button id="savePermissionsBtn" class="btn btn-primary">
               Save Changes
@@ -904,8 +900,10 @@
       </div>
     </div>
 
+    <!-- Hidden textarea for copy operations -->
     <textarea id="hiddenCopyArea" class="hidden-copy-area"></textarea>
 
+    <!-- Scripts -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
