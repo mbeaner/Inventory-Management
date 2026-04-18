@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover"
+    />
+    <title>Inventory Manager Pro v17.1.0 | Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-spinner-large"></div>
+      <p>Loading Inventory Manager...</p>
+    </div>
+
+    <div class="container">
+      <!-- Auth Container (shown when not logged in) -->
+      <div id="authContainer" class="auth-container" style="display: none">
+        <div class="auth-card">
+          <div class="auth-header">
+            <i class="fas fa-cubes"></i>
+            <h2>Inventory Manager Pro</h2>
+            <p>Sign in to manage your inventory</p>
+          </div>
+
+          <div class="auth-tabs">
+            <button id="loginTab" class="auth-tab active">Login</button>
+            <button id="registerTab" class="auth-tab">Register</button>
+          </div>
+
+          <!-- Login Form -->
+          <div id="loginForm" class="auth-form active">
+            <div class="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                id="loginEmail"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="Enter your password"
+              />
+            </div>
+            <button id="loginBtn" class="btn btn-primary auth-btn">
+              Login
+            </button>
+          </div>
+
+          <!-- Register Form -->
+          <div id="registerForm" class="auth-form">
+            <div class="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                id="registerEmail"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                id="registerPassword"
+                placeholder="Create a password"
+              />
+            </div>
+            <div class="form-group">
+              <label>Confirm Password</label>
+              <input
+                type="password"
+                id="registerConfirmPassword"
+                placeholder="Confirm your password"
+              />
+            </div>
+            <button id="registerBtn" class="btn btn-primary auth-btn">
+              Create Account
+            </button>
+          </div>
+
+          <div id="authMessage" class="auth-message"></div>
+        </div>
+      </div>
+
+      <!-- Main App Container (hidden until logged in) -->
+      <div id="appContainer" style="display: none">
+        <div class="header">
+          <h1>
+            <i class="fas fa-cubes"></i> Inventory Manager Pro
+            <span class="version-badge">v17.1.0</span>
+          </h1>
+          <div class="stats-bar">
+            <div class="stat-card">
+              <i class="fas fa-boxes"></i> <span id="totalPartsStat">0</span>
+            </div>
+            <div class="stat-card">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span id="lowStockStat">0</span>
+            </div>
+            <button
+              id="adminPanelBtn"
+              class="btn btn-secondary"
+              style="display: none; background: #7c3aed; color: white"
+            >
+              <i class="fas fa-users-cog"></i> Admin
+            </button>
+            <button
+              id="logoutBtn"
+              class="btn btn-secondary"
+              style="background: #e76f51; color: white"
+            >
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <label class="file-label" for="excelUpload"
+            ><i class="fas fa-upload"></i> Import</label
+          >
+          <input
+            type="file"
+            id="excelUpload"
+            accept=".xlsx, .xls, .csv"
+            style="display: none"
+          />
+          <button class="btn btn-secondary" id="addPartBtn">
+            <i class="fas fa-plus-circle"></i> Add Part
+          </button>
+          <button class="btn btn-secondary" id="quickLogBtn">
+            <i class="fas fa-pen-alt"></i> Log Usage
+          </button>
+          <button class="btn btn-primary" id="reportBtn">
+            <i class="fas fa-chart-line"></i> Order Report
+          </button>
+          <button id="scanQrBtn" class="btn btn-scan">
+            <i class="fas fa-qrcode"></i> Scan QR
+          </button>
+        </div>
+
+        <!-- Desktop Tab Navigation -->
+        <div class="tab-nav desktop-nav">
+          <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+          <button class="tab-btn" data-tab="all">All Parts</button>
+          <button class="tab-btn" data-tab="needorder">Need Order</button>
+          <button class="tab-btn" data-tab="critical">Critical</button>
+          <button class="tab-btn" data-tab="logs">Usage Logs</button>
+        </div>
+
+        <!-- Mobile Hamburger Menu -->
+        <div class="mobile-nav">
+          <div class="hamburger-menu" id="hamburgerMenu">
+            <i class="fas fa-bars"></i>
+            <span>Menu</span>
+          </div>
+          <div class="mobile-dropdown" id="mobileDropdown">
+            <button class="mobile-tab-btn" data-tab="dashboard">
+              Dashboard
+            </button>
+            <button class="mobile-tab-btn" data-tab="all">All Parts</button>
+            <button class="mobile-tab-btn" data-tab="needorder">
+              Need Order
+            </button>
+            <button class="mobile-tab-btn" data-tab="critical">Critical</button>
+            <button class="mobile-tab-btn" data-tab="logs">Usage Logs</button>
+          </div>
+        </div>
+
+        <!-- DASHBOARD TAB -->
+        <div id="tab-dashboard" class="tab-content">
+          <div class="dashboard-header">
+            <h2><i class="fas fa-chart-line"></i> Inventory Dashboard</h2>
+            <button id="refreshDashboardBtn" class="btn btn-secondary">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="dashboard-kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fas fa-cubes"></i></div>
+              <div class="kpi-info">
+                <div class="kpi-value" id="kpiTotalParts">0</div>
+                <div class="kpi-label">Total Parts</div>
+                <div class="kpi-trend" id="kpiPartsTrend">Loading...</div>
+              </div>
+            </div>
+            <div class="kpi-card warning">
+              <div class="kpi-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="kpi-info">
+                <div class="kpi-value" id="kpiLowStock">0</div>
+                <div class="kpi-label">Low Stock</div>
+                <div class="kpi-trend" id="kpiLowStockTrend">
+                  Below baseline
+                </div>
+              </div>
+            </div>
+            <div class="kpi-card critical">
+              <div class="kpi-icon"><i class="fas fa-bell"></i></div>
+              <div class="kpi-info">
+                <div class="kpi-value" id="kpiCritical">0</div>
+                <div class="kpi-label">Critical Stock</div>
+                <div class="kpi-trend" id="kpiCriticalTrend">
+                  Below 50% of baseline
+                </div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fas fa-history"></i></div>
+              <div class="kpi-info">
+                <div class="kpi-value" id="kpiLogsCount">0</div>
+                <div class="kpi-label">Logs (30 days)</div>
+                <div class="kpi-trend" id="kpiLogsTrend">Last 30 days</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usage Trends Chart -->
+          <div class="dashboard-section">
+            <h3>
+              <i class="fas fa-chart-line"></i> Usage Trends (Last 30 Days)
+            </h3>
+            <div class="chart-container">
+              <canvas id="usageTrendsChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Top Used Parts -->
+          <div class="dashboard-section">
+            <h3>
+              <i class="fas fa-fire"></i> Top 5 Most Used Parts (Last 30 Days)
+            </h3>
+            <div class="top-parts-list" id="topPartsList">
+              <div class="loading-placeholder">Loading...</div>
+            </div>
+          </div>
+
+          <!-- Low Stock Alerts -->
+          <div class="dashboard-section">
+            <h3><i class="fas fa-bell"></i> Low Stock Alerts</h3>
+            <div class="low-stock-list" id="lowStockList">
+              <div class="loading-placeholder">Loading...</div>
+            </div>
+            <div class="view-all-link">
+              <a
+                href="#"
+                onclick="
+                  switchToTab('needorder');
+                  return false;
+                "
+                >View all low stock items →</a
+              >
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="dashboard-section">
+            <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+            <div class="recent-activity-list" id="recentActivityList">
+              <div class="loading-placeholder">Loading...</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-all" class="tab-content">
+          <div class="search-section">
+            <div class="search-box">
+              <i class="fas fa-search"></i
+              ><input
+                type="text"
+                id="allSearchInput"
+                placeholder="Search parts..."
+              />
+            </div>
+            <div class="rows-select-wrapper">
+              <span class="rows-select-label">Show</span>
+              <div class="custom-select">
+                <select id="allRowsPerPage">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option></select
+                ><i class="fas fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th class="sortable" data-sort="part_number">
+                    Part Number <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" data-sort="description">
+                    Description <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" data-sort="current_qty">
+                    Current Qty <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" data-sort="baseline_qty">
+                    Baseline <i class="fas fa-sort"></i>
+                  </th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="allPartsBody"></tbody>
+            </table>
+          </div>
+          <div id="allPagination" class="pagination"></div>
+        </div>
+
+        <div id="tab-needorder" class="tab-content">
+          <div class="search-section">
+            <div class="search-box">
+              <i class="fas fa-search"></i
+              ><input
+                type="text"
+                id="needSearchInput"
+                placeholder="Search..."
+              />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Part Number</th>
+                  <th>Description</th>
+                  <th>Current Qty</th>
+                  <th>Baseline</th>
+                  <th>Shortage</th>
+                </tr>
+              </thead>
+              <tbody id="needOrderBody"></tbody>
+            </table>
+          </div>
+          <div id="needPagination" class="pagination"></div>
+        </div>
+
+        <div id="tab-critical" class="tab-content">
+          <div class="search-section">
+            <div class="search-box">
+              <i class="fas fa-search"></i
+              ><input
+                type="text"
+                id="criticalSearchInput"
+                placeholder="Search..."
+              />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Part Number</th>
+                  <th>Description</th>
+                  <th>Current Qty</th>
+                  <th>Baseline</th>
+                  <th>% Left</th>
+                </tr>
+              </thead>
+              <tbody id="criticalBody"></tbody>
+            </table>
+          </div>
+          <div id="criticalPagination" class="pagination"></div>
+        </div>
+
+        <div id="tab-logs" class="tab-content">
+          <div class="logs-container">
+            <div class="logs-header">
+              <span
+                ><i class="fas fa-history"></i> Usage History
+                <span id="logCount"></span
+              ></span>
+              <div class="search-box" style="max-width: 260px">
+                <i class="fas fa-search"></i
+                ><input
+                  type="text"
+                  id="logsSearchInput"
+                  placeholder="Filter..."
+                />
+              </div>
+            </div>
+
+            <!-- Column Headers for Logs -->
+            <div class="logs-column-headers">
+              <div class="log-header-date">Date & Time</div>
+              <div class="log-header-part">Part</div>
+              <div class="log-header-qty">Quantity</div>
+              <div class="log-header-stock">Stock Change</div>
+              <div class="log-header-note">Note</div>
+            </div>
+
+            <div id="logsListContainer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qrScannerModal" class="modal">
+      <div class="modal-card qr-modal">
+        <span class="close-modal" data-modal="qrScannerModal">&times;</span>
+        <h3><i class="fas fa-qrcode"></i> Scan QR Code</h3>
+        <div id="qr-reader"></div>
+        <div class="qr-manual-input">
+          <input
+            type="text"
+            id="manualQrInput"
+            placeholder="Or manually enter part number..."
+          />
+          <button id="manualQrSubmit" class="btn btn-primary">Find Part</button>
+        </div>
+        <div id="qr-status" class="qr-status idle">
+          <i class="fas fa-camera"></i> Ready to scan
+        </div>
+        <button id="cancelScanBtn" class="cancel-scan-btn">
+          <i class="fas fa-times-circle"></i> Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="cameraModal" class="modal">
+      <div class="modal-card camera-modal">
+        <span class="close-modal" data-modal="cameraModal">&times;</span>
+        <h3><i class="fas fa-camera"></i> Take Photo</h3>
+        <div id="camera-preview">
+          <video id="camera-video" autoplay playsinline muted></video>
+        </div>
+        <canvas id="camera-canvas" style="display: none"></canvas>
+        <div class="camera-buttons">
+          <button id="capturePhotoBtn" class="btn btn-primary">
+            <i class="fas fa-camera"></i> Capture
+          </button>
+          <button id="cancelCameraBtn" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Part Details Modal -->
+    <div id="partDetailsModal" class="modal">
+      <div class="modal-card details-modal">
+        <span class="close-modal" data-modal="partDetailsModal">&times;</span>
+        <h3><i class="fas fa-info-circle"></i> Part Details</h3>
+        <div id="partDetailsContent" class="details-grid"></div>
+        <div class="photo-container">
+          <div id="photoDisplay"></div>
+        </div>
+        <div class="details-actions">
+          <button id="detailsEditBtn" class="btn btn-secondary">
+            <i class="fas fa-edit"></i> Edit Part
+          </button>
+          <button id="detailsLogBtn" class="btn btn-primary">
+            <i class="fas fa-clipboard-list"></i> Log Usage
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-card">
+        <span class="close-modal" data-modal="editModal">&times;</span>
+        <h3><i class="fas fa-edit"></i> Edit Part</h3>
+        <div style="flex: 1; overflow-y: auto">
+          <div class="form-group">
+            <label>Part Number</label><input type="text" id="editPartNumber" />
+          </div>
+          <div class="form-group">
+            <label>Description</label><input type="text" id="editDescription" />
+          </div>
+          <div class="form-group">
+            <label>Location</label
+            ><input
+              type="text"
+              id="editLocation"
+              placeholder="Aisle, Shelf, Bin"
+            />
+          </div>
+          <div class="form-group">
+            <label>Current Quantity</label>
+            <div class="qty-adjust-group">
+              <button id="decrementQtyBtn">-</button
+              ><span class="qty-value" id="editCurrentQtyDisplay">0</span
+              ><button id="incrementQtyBtn">+</button>
+            </div>
+            <input type="hidden" id="editCurrentQty" />
+          </div>
+          <div class="form-group">
+            <label>Baseline</label><input type="number" id="editBaselineQty" />
+          </div>
+          <div class="photo-container">
+            <div id="editPhotoDisplay"></div>
+            <div class="photo-buttons">
+              <button id="editTakePhotoBtn" class="btn btn-photo">
+                <i class="fas fa-camera"></i> Take Photo
+              </button>
+              <button
+                id="editRemovePhotoBtn"
+                class="btn btn-secondary"
+                style="display: none"
+              >
+                <i class="fas fa-trash-alt"></i> Remove Photo
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="deleteFromEditBtn">Delete</button>
+          <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+          <button class="btn btn-primary" id="saveEditBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Report Modal -->
+    <div id="orderReportModal" class="modal">
+      <div class="modal-card report-modal">
+        <span class="close-modal" data-modal="orderReportModal">&times;</span>
+        <h3>Order Report</h3>
+        <div id="reportListContainer" class="report-list"></div>
+        <div class="report-footer">
+          <span class="report-total" id="reportTotalItems">Total: 0 items</span>
+          <button id="createOrderBtn" class="btn btn-order">
+            Create Order
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="confirmDeleteModal" class="modal">
+      <div class="modal-card confirm-modal">
+        <span class="close-modal" data-modal="confirmDeleteModal">&times;</span>
+        <div class="warning-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 id="confirmTitle">Confirm Delete</h3>
+        <p id="confirmMessage">Are you sure you want to delete this item?</p>
+        <div
+          id="confirmDetails"
+          class="part-details"
+          style="display: none"
+        ></div>
+        <div class="confirm-actions">
+          <button id="confirmCancelBtn" class="btn btn-secondary">
+            Cancel
+          </button>
+          <button id="confirmProceedBtn" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usage Modal -->
+    <div id="usageModal" class="modal">
+      <div class="modal-card">
+        <span class="close-modal" data-modal="usageModal">&times;</span>
+        <h3><i class="fas fa-tools"></i> Log Usage</h3>
+        <div class="usage-part-search">
+          <label class="form-label">Select Part</label>
+          <div class="searchable-dropdown">
+            <input
+              type="text"
+              id="partSearchInput"
+              class="usage-search-input"
+              placeholder="Type part number or description..."
+            />
+            <div id="partListDropdown" class="usage-dropdown"></div>
+          </div>
+          <div id="selectedPartDisplay" class="usage-selected-part"></div>
+        </div>
+        <div class="form-group">
+          <label>Quantity to Remove</label>
+          <div class="quantity-input-wrapper">
+            <button type="button" id="decrementUsageQty" class="qty-btn">
+              <i class="fas fa-minus"></i>
+            </button>
+            <input
+              type="number"
+              id="usageQty"
+              class="quantity-input"
+              min="1"
+              value="1"
+            />
+            <button type="button" id="incrementUsageQty" class="qty-btn">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Note (Optional)</label>
+          <textarea
+            id="usageNote"
+            rows="3"
+            placeholder="e.g., Used for machine repair, maintenance, etc..."
+          ></textarea>
+        </div>
+        <button id="confirmUsageBtn" class="btn btn-primary confirm-usage-btn">
+          <i class="fas fa-check-circle"></i> Confirm & Subtract
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit Log Modal -->
+    <div id="editLogModal" class="modal">
+      <div class="modal-card">
+        <span class="close-modal" data-modal="editLogModal">&times;</span>
+        <h3>Edit Log</h3>
+        <div class="form-group">
+          <label>Part</label
+          ><input type="text" id="editLogPartNumber" readonly />
+        </div>
+        <div class="form-group">
+          <label>Quantity</label><input type="number" id="editLogQty" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Date</label><input type="text" id="editLogDate" />
+        </div>
+        <div class="form-group">
+          <label>Note</label><textarea id="editLogNote" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="deleteLogBtn">Delete</button>
+          <button class="btn btn-secondary" id="cancelEditLogBtn">
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="saveEditLogBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Part Modal -->
+    <div id="addPartModal" class="modal">
+      <div class="modal-card">
+        <span class="close-modal" data-modal="addPartModal">&times;</span>
+        <h3>Add Part</h3>
+        <div class="form-group">
+          <label>Part Number</label><input type="text" id="newPartNumber" />
+        </div>
+        <div class="form-group">
+          <label>Description</label><input type="text" id="newDescription" />
+        </div>
+        <div class="form-group">
+          <label>Location</label><input type="text" id="newLocation" />
+        </div>
+        <div class="form-group">
+          <label>Initial Qty</label
+          ><input type="number" id="newQuantity" value="0" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="cancelAddBtn">Cancel</button>
+          <button class="btn btn-primary" id="saveAddBtn">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminPanelModal" class="modal">
+      <div class="modal-card" style="max-width: 700px">
+        <span class="close-modal" data-modal="adminPanelModal">&times;</span>
+        <h3><i class="fas fa-users-cog"></i> Admin Panel - User Management</h3>
+
+        <div class="admin-stats">
+          <div class="admin-stat-card">
+            <i class="fas fa-users"></i>
+            <div>
+              <div class="stat-label">Total Users</div>
+              <div class="stat-value" id="totalUsersCount">0</div>
+            </div>
+          </div>
+          <div class="admin-stat-card">
+            <i class="fas fa-user-shield"></i>
+            <div>
+              <div class="stat-label">Admins</div>
+              <div class="stat-value" id="adminCount">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-search">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="adminUserSearch"
+            placeholder="Search users by email..."
+          />
+        </div>
+
+        <div class="admin-user-list" id="adminUserList">
+          <div style="text-align: center; padding: 20px">
+            <i class="fas fa-spinner fa-pulse"></i> Loading users...
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="closeAdminPanelBtn" class="btn btn-secondary">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Permissions Modal -->
+    <div id="userPermissionsModal" class="modal">
+      <div class="modal-card" style="max-width: 500px">
+        <span class="close-modal" data-modal="userPermissionsModal"
+          >&times;</span
+        >
+        <h3><i class="fas fa-user-cog"></i> User Permissions</h3>
+
+        <div id="userPermissionsContent">
+          <div class="user-permissions-header" id="userPermissionsHeader"></div>
+
+          <div class="permissions-section">
+            <h4><i class="fas fa-cubes"></i> Parts Permissions</h4>
+            <div class="permission-item">
+              <div class="permission-info">
+                <strong>Add Parts</strong>
+                <small>Can create new parts</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="permAddParts" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="permission-item">
+              <div class="permission-info">
+                <strong>Edit Parts</strong>
+                <small>Can modify existing parts (including quantity)</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="permEditParts" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="permission-item">
+              <div class="permission-info">
+                <strong>Delete Parts</strong>
+                <small>Can remove parts from inventory</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="permDeleteParts" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="permissions-section">
+            <h4><i class="fas fa-history"></i> Logs Permissions</h4>
+            <div class="permission-item">
+              <div class="permission-info">
+                <strong>Log Usage</strong>
+                <small>Can record part usage (decreases quantity)</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="permLogUsage" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="permission-item">
+              <div class="permission-info">
+                <strong>Edit Logs</strong>
+                <small>Can modify log entries</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="permEditLogs" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="permission-item">
+              <div class="permission-info">
+                <strong>Delete Logs</strong>
+                <small>Can remove log entries</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="permDeleteLogs" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="permissions-section">
+            <h4><i class="fas fa-tools"></i> Admin Rights</h4>
+            <div class="permission-item">
+              <div class="permission-info">
+                <strong>Admin Access</strong>
+                <small>Full system access including user management</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="permIsAdmin" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="user-permissions-actions">
+            <button id="savePermissionsBtn" class="btn btn-primary">
+              Save Changes
+            </button>
+            <button id="cancelPermissionsBtn" class="btn btn-secondary">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Details Modal -->
+    <div id="logDetailsModal" class="modal">
+      <div class="modal-card details-modal">
+        <span class="close-modal" data-modal="logDetailsModal">&times;</span>
+        <h3><i class="fas fa-clipboard-list"></i> Usage Log Details</h3>
+        <div id="logDetailsContent" class="details-grid"></div>
+        <div class="details-actions">
+          <button
+            id="logDetailsEditBtn"
+            class="btn btn-secondary"
+            style="display: none"
+          >
+            <i class="fas fa-edit"></i> Edit Log
+          </button>
+          <button
+            id="logDetailsDeleteBtn"
+            class="btn btn-danger"
+            style="display: none"
+          >
+            <i class="fas fa-trash"></i> Delete Log
+          </button>
+          <button id="logDetailsCloseBtn" class="btn btn-primary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <textarea id="hiddenCopyArea" class="hidden-copy-area"></textarea>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
