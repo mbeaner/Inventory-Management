@@ -1,4 +1,4 @@
-// app.js - Inventory Manager Pro v17.1.4 with Dashboard
+// app.js - Inventory Manager Pro v17.1.5 with Bottom Action Bar
 
 // Get Supabase client from window
 const supabaseClient = window.supabaseClient;
@@ -923,6 +923,74 @@ async function updateUIByPermissions() {
     canAddParts: canAddParts,
     canLogUsage: canLogUsage,
   };
+
+  // Update bottom action bar visibility based on permissions
+  updateBottomActionBarVisibility();
+}
+
+// ========== BOTTOM ACTION BAR VISIBILITY ==========
+function updateBottomActionBarVisibility() {
+  const addBtn = document.getElementById('mobileAddPartBtn');
+  const logBtn = document.getElementById('mobileLogUsageBtn');
+  const scanBtn = document.getElementById('mobileScanBtn');
+  const reportBtn = document.getElementById('mobileReportBtn');
+  const importBtn = document.getElementById('mobileImportBtn');
+
+  // Add Part button - requires canAddParts permission
+  if (addBtn) {
+    addBtn.style.display =
+      windowCurrentPermissions.canAddParts || isAdmin ? 'flex' : 'none';
+  }
+
+  // Log Usage button - requires canLogUsage permission
+  if (logBtn) {
+    logBtn.style.display =
+      windowCurrentPermissions.canLogUsage || isAdmin ? 'flex' : 'none';
+  }
+
+  // Scan button - available to all authenticated users (QR scanning is just a lookup tool)
+  if (scanBtn) {
+    scanBtn.style.display = 'flex';
+  }
+
+  // Report button - available to all authenticated users (viewing reports doesn't modify data)
+  if (reportBtn) {
+    reportBtn.style.display = 'flex';
+  }
+
+  // Import button - only admins
+  if (importBtn) {
+    importBtn.style.display = isAdmin ? 'flex' : 'none';
+  }
+
+  // If no buttons are visible, hide the entire bottom action bar
+  const bottomBar = document.querySelector('.bottom-action-bar');
+  if (bottomBar) {
+    const visibleButtons = document.querySelectorAll(
+      '.bottom-action-btn[style*="display: flex"], .bottom-action-btn:not([style*="display: none"])',
+    );
+    let hasVisibleButton = false;
+    visibleButtons.forEach((btn) => {
+      if (btn.style.display !== 'none') {
+        hasVisibleButton = true;
+      }
+    });
+    // Also check for buttons without inline styles (default visible)
+    const allButtons = document.querySelectorAll('.bottom-action-btn');
+    if (allButtons.length > 0 && !hasVisibleButton) {
+      // Check if any button is not hidden
+      for (let i = 0; i < allButtons.length; i++) {
+        if (
+          allButtons[i].style.display !== 'none' &&
+          window.getComputedStyle(allButtons[i]).display !== 'none'
+        ) {
+          hasVisibleButton = true;
+          break;
+        }
+      }
+    }
+    bottomBar.style.display = hasVisibleButton ? 'block' : 'none';
+  }
 }
 
 // ========== DATABASE FUNCTIONS ==========
@@ -2793,6 +2861,68 @@ document.addEventListener('click', function (e) {
 document
   .getElementById('darkModeToggle')
   ?.addEventListener('click', toggleDarkMode);
+
+// ========== BOTTOM ACTION BAR EVENT LISTENERS (v17.1.5) ==========
+// Bottom action bar buttons (mobile only)
+document
+  .getElementById('mobileAddPartBtn')
+  ?.addEventListener('click', function () {
+    const canAdd = windowCurrentPermissions.canAddParts || isAdmin;
+    if (!canAdd) {
+      showToast('You do not have permission to add parts', true);
+      return;
+    }
+    showModal('addPartModal');
+  });
+
+document
+  .getElementById('mobileLogUsageBtn')
+  ?.addEventListener('click', function () {
+    const canLog = windowCurrentPermissions.canLogUsage || isAdmin;
+    if (!canLog) {
+      showToast('You do not have permission to log usage', true);
+      return;
+    }
+    if (parts.length === 0) {
+      showToast('No parts in inventory', true);
+      return;
+    }
+    selectedPartId = null;
+    document.getElementById('partSearchInput').value = '';
+    let selectedDisplay = document.getElementById('selectedPartDisplay');
+    selectedDisplay.classList.remove('show');
+    selectedDisplay.innerHTML = '';
+    document.getElementById('partListDropdown').innerHTML = '';
+    document.getElementById('partListDropdown').style.display = 'none';
+    document.getElementById('usageQty').value = 1;
+    document.getElementById('usageQty').max = 9999;
+    document.getElementById('usageNote').value = '';
+    updatePartDropdown('');
+    showModal('usageModal');
+  });
+
+document
+  .getElementById('mobileScanBtn')
+  ?.addEventListener('click', function () {
+    openQrScanner();
+  });
+
+document
+  .getElementById('mobileReportBtn')
+  ?.addEventListener('click', function () {
+    showOrderReport();
+  });
+
+document
+  .getElementById('mobileImportBtn')
+  ?.addEventListener('click', function () {
+    if (!isAdmin) {
+      showToast('Only admins can import Excel files', true);
+      return;
+    }
+    // Trigger the hidden file input
+    document.getElementById('excelUpload').click();
+  });
 
 // Initialize
 initMobileMenu();

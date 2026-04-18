@@ -35,6 +35,8 @@
   --status-warning-text: #d97706;
   --status-ok-bg: #e0f2e9;
   --status-ok-text: #2d6a4f;
+  /* Card background RGB for transparency */
+  --card-bg-rgb: 255, 255, 255;
 }
 
 body.dark {
@@ -72,6 +74,7 @@ body.dark {
   --status-warning-text: #fcd34d;
   --status-ok-bg: #1a3a2a;
   --status-ok-text: #6fcf97;
+  --card-bg-rgb: 30, 41, 59;
 }
 
 * {
@@ -578,18 +581,115 @@ h1 {
   color: white;
 }
 
-/* Responsive Breakpoint */
+/* ========== BOTTOM ACTION BAR - MOBILE ONLY ========== */
+/* By default, hide completely */
+.bottom-action-bar {
+  display: none !important;
+}
+
+/* Only show on mobile screens */
 @media (max-width: 768px) {
-  .desktop-nav {
-    display: none;
+  /* Hide desktop action bar on mobile */
+  .action-bar {
+    display: none !important;
   }
 
+  /* Show bottom action bar */
+  .bottom-action-bar {
+    display: block !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    background: rgba(var(--card-bg-rgb), 0.95);
+    border-top: 1px solid var(--border-color);
+    padding: 8px 12px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .bottom-action-grid {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .bottom-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 8px 4px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    min-width: 0;
+    color: var(--text-secondary);
+  }
+
+  .bottom-action-btn i {
+    font-size: 1.3rem;
+  }
+
+  .bottom-action-btn span {
+    font-size: 0.6rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .bottom-action-btn:active {
+    transform: scale(0.95);
+    background: var(--hover-bg);
+  }
+
+  .bottom-action-btn.primary {
+    background: #2d6a4f;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 40px;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .bottom-action-btn.primary i {
+    font-size: 1rem;
+  }
+
+  .bottom-action-btn.primary span {
+    font-size: 0.7rem;
+  }
+
+  /* Add padding to bottom of content to account for fixed bar */
+  .tab-content.active {
+    padding-bottom: 80px;
+  }
+
+  /* Adjust main container */
+  .container {
+    padding-bottom: 0;
+  }
+
+  /* Make hamburger menu more prominent */
   .mobile-nav {
     display: block;
+  }
+
+  .desktop-nav {
+    display: none;
   }
 }
 
 @media (min-width: 769px) {
+  .bottom-action-bar {
+    display: none !important;
+  }
   .mobile-nav {
     display: none;
   }
@@ -2272,7 +2372,8 @@ input:checked + .toggle-slider:before {
 .mobile-tab-btn:active,
 .page-btn:active,
 .qty-btn:active,
-.admin-action-btn:active {
+.admin-action-btn:active,
+.bottom-action-btn:active {
   transform: scale(0.97);
   opacity: 0.9;
 }
@@ -2288,6 +2389,10 @@ input:checked + .toggle-slider:before {
   .camera-buttons,
   .confirm-modal .confirm-actions,
   .report-footer {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .bottom-action-bar {
     padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 }
@@ -2375,12 +2480,6 @@ input:checked + .toggle-slider:before {
 
   .stat-card {
     padding: 4px 10px;
-    font-size: 0.7rem;
-  }
-
-  .action-bar .btn,
-  .action-bar .file-label {
-    padding: 10px 12px;
     font-size: 0.7rem;
   }
 
