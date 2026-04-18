@@ -1,4 +1,4 @@
-// app.js - Inventory Manager Pro v18.1.0 with Bottom Action Bar
+// app.js - Inventory Manager Pro v18.1.1 with Mobile Header Redesign
 
 // Get Supabase client from window
 const supabaseClient = window.supabaseClient;
@@ -2576,6 +2576,15 @@ function initMobileMenu() {
 }
 
 // ========== EVENT LISTENERS ==========
+
+// Desktop button event listeners
+document
+  .getElementById('darkModeToggleDesktop')
+  ?.addEventListener('click', toggleDarkMode);
+document
+  .getElementById('adminPanelBtnDesktop')
+  ?.addEventListener('click', openAdminPanel);
+document.getElementById('logoutBtnDesktop')?.addEventListener('click', logout);
 
 // Auth event listeners
 document.getElementById('loginTab')?.addEventListener('click', switchToLogin);
