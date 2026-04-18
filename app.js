@@ -72,11 +72,23 @@ const hideSyncIndicator = () =>
   setTimeout(() => document.querySelector('.sync-indicator')?.remove(), 500);
 const hideModal = (id) => {
   const el = document.getElementById(id);
-  if (el) el.style.display = 'none';
+  if (el) {
+    el.style.display = 'none';
+    // Only re-enable scroll if no other modals are open
+    const openModals = document.querySelectorAll(
+      '.modal[style*="display: flex"]',
+    );
+    if (openModals.length === 0) {
+      enableBodyScroll();
+    }
+  }
 };
 const showModal = (id) => {
   const el = document.getElementById(id);
-  if (el) el.style.display = 'flex';
+  if (el) {
+    el.style.display = 'flex';
+    disableBodyScroll();
+  }
 };
 const escapeHtml = (s) =>
   s
@@ -86,6 +98,14 @@ const escapeHtml = (s) =>
       )
     : '';
 
+// Prevent body scroll when modal is open
+function disableBodyScroll() {
+  document.body.classList.add('modal-open');
+}
+
+function enableBodyScroll() {
+  document.body.classList.remove('modal-open');
+}
 // =============================================
 // AUTHENTICATION
 // =============================================
