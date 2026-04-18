@@ -40,6 +40,9 @@ let allSortDirection = 'asc';
 // Tab persistence
 const STORAGE_KEY = 'inventoryManager_activeTab';
 
+// Dark mode
+const DARK_MODE_KEY = 'inventoryManager_darkMode';
+
 // Chart variable
 let usageChart = null;
 
@@ -219,6 +222,47 @@ function switchToRegister() {
   document.getElementById('registerPassword').value = '';
   document.getElementById('registerConfirmPassword').value = '';
   showAuthMessage('', '');
+}
+
+// ========== DARK MODE FUNCTIONS ==========
+
+function initDarkMode() {
+  const savedMode = localStorage.getItem(DARK_MODE_KEY);
+  if (savedMode === 'dark') {
+    document.body.classList.add('dark');
+    updateDarkModeButton(true);
+  } else {
+    document.body.classList.remove('dark');
+    updateDarkModeButton(false);
+  }
+}
+
+function updateDarkModeButton(isDark) {
+  const darkModeBtn = document.getElementById('darkModeToggle');
+  if (darkModeBtn) {
+    if (isDark) {
+      darkModeBtn.innerHTML = '<i class="fas fa-sun"></i> Light';
+      darkModeBtn.style.background = '#f59e0b';
+    } else {
+      darkModeBtn.innerHTML = '<i class="fas fa-moon"></i> Dark';
+      darkModeBtn.style.background = '#1e466e';
+    }
+  }
+}
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.contains('dark');
+  if (isDark) {
+    document.body.classList.remove('dark');
+    localStorage.setItem(DARK_MODE_KEY, 'light');
+    updateDarkModeButton(false);
+    showToast('Light mode activated', false);
+  } else {
+    document.body.classList.add('dark');
+    localStorage.setItem(DARK_MODE_KEY, 'dark');
+    updateDarkModeButton(true);
+    showToast('Dark mode activated', false);
+  }
 }
 
 // ========== TAB PERSISTENCE FUNCTIONS ==========
@@ -2729,6 +2773,11 @@ document.addEventListener('click', function (e) {
   }
 });
 
+// Dark mode toggle event listener
+document
+  .getElementById('darkModeToggle')
+  ?.addEventListener('click', toggleDarkMode);
+
 // Initialize
 initMobileMenu();
 initUsageQuantityControls();
@@ -2738,6 +2787,9 @@ window.showLogDetails = showLogDetails;
 window.switchToTab = switchToTab;
 window.openUserPermissions = window.openUserPermissions;
 checkSession();
+
+// Initialize dark mode
+initDarkMode();
 
 // Restore the last active tab after everything is loaded
 restoreActiveTab();
