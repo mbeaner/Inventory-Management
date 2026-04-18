@@ -2640,3 +2640,38 @@ input:checked + .toggle-slider:before {
     display: none !important;
   }
 }
+
+/* Fix white gap at top in dark mode - v18.1.2 */
+html,
+body {
+  min-height: 100vh;
+  background-attachment: fixed;
+}
+
+body.dark {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+body.dark .container {
+  background: transparent;
+}
+
+body.dark .header,
+body.dark .action-bar,
+body.dark .tab-nav,
+body.dark .mobile-nav,
+body.dark .search-section,
+body.dark .table-wrapper,
+body.dark .dashboard-section,
+body.dark .logs-container {
+  background: var(--card-bg);
+}
+
+/* Force dark mode background on all elements */
+body.dark {
+  background-color: #0f172a;
+}
+
+body.dark .loading-screen {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}

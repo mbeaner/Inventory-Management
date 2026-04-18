@@ -1,4 +1,4 @@
-// app.js - Inventory Manager Pro v18.1.1 with Mobile Header Redesign
+// app.js - Inventory Manager Pro v18.1.2 with Mobile Dark Mode Fix
 
 // Get Supabase client from window
 const supabaseClient = window.supabaseClient;
