@@ -7,7 +7,6 @@
 /* CSS VARIABLES (Light Mode Default)           */
 /* --------------------------------------------- */
 :root {
-  /* Background Colors */
   --bg-gradient-start: #e8eef4;
   --bg-gradient-end: #dce3ec;
   --card-bg: #ffffff;
@@ -15,38 +14,22 @@
   --section-bg: #ffffff;
   --auth-card-bg: #ffffff;
   --dropdown-bg: #ffffff;
-
-  /* Text Colors */
   --text-primary: #1a2c3e;
   --text-secondary: #64748b;
-
-  /* Border Colors */
   --border-color: #e2e8f0;
   --table-header-bg: #f8fafc;
   --table-row-border: #f1f5f9;
-
-  /* Input Colors */
   --input-bg: #ffffff;
   --input-border: #e2e8f0;
-
-  /* Interactive States */
   --hover-bg: #f8fafc;
   --stat-card-bg: #f8fafc;
   --kpi-icon-bg: #eef2ff;
-
-  /* Toggle Switch */
   --toggle-bg: #cbd5e1;
   --toggle-checked: #2d6a4f;
-
-  /* Toast Messages */
   --toast-bg: #2d6a4f;
   --toast-error: #e76f51;
-
-  /* Scrollbar */
   --scrollbar-track: #f1f5f9;
   --scrollbar-thumb: #cbd5e1;
-
-  /* Stock Status Colors - Light Mode */
   --stock-low-bg: #fffbeb;
   --stock-low-border: #f59e0b;
   --stock-critical-bg: #fef2f2;
@@ -57,16 +40,10 @@
   --status-warning-text: #d97706;
   --status-ok-bg: #e0f2e9;
   --status-ok-text: #2d6a4f;
-
-  /* Card Background RGB (for transparency) */
   --card-bg-rgb: 255, 255, 255;
 }
 
-/* --------------------------------------------- */
-/* CSS VARIABLES (Dark Mode Overrides)          */
-/* --------------------------------------------- */
 body.dark {
-  /* Background Colors */
   --bg-gradient-start: #0f172a;
   --bg-gradient-end: #1e293b;
   --card-bg: #1e293b;
@@ -74,38 +51,22 @@ body.dark {
   --section-bg: #1e293b;
   --auth-card-bg: #1e293b;
   --dropdown-bg: #1e293b;
-
-  /* Text Colors */
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-
-  /* Border Colors */
   --border-color: #334155;
   --table-header-bg: #0f172a;
   --table-row-border: #334155;
-
-  /* Input Colors */
   --input-bg: #0f172a;
   --input-border: #334155;
-
-  /* Interactive States */
   --hover-bg: #334155;
   --stat-card-bg: #0f172a;
   --kpi-icon-bg: #334155;
-
-  /* Toggle Switch */
   --toggle-bg: #475569;
   --toggle-checked: #2d6a4f;
-
-  /* Toast Messages */
   --toast-bg: #2d6a4f;
   --toast-error: #e76f51;
-
-  /* Scrollbar */
   --scrollbar-track: #334155;
   --scrollbar-thumb: #475569;
-
-  /* Stock Status Colors - Dark Mode */
   --stock-low-bg: #3b2e1e;
   --stock-low-border: #f59e0b;
   --stock-critical-bg: #3d2520;
@@ -116,14 +77,9 @@ body.dark {
   --status-warning-text: #fcd34d;
   --status-ok-bg: #1a3a2a;
   --status-ok-text: #6fcf97;
-
-  /* Card Background RGB (for transparency) */
   --card-bg-rgb: 30, 41, 59;
 }
 
-/* --------------------------------------------- */
-/* GLOBAL RESETS & BASE STYLES                  */
-/* --------------------------------------------- */
 * {
   margin: 0;
   padding: 0;
@@ -303,7 +259,6 @@ body {
   margin-left: 8px;
 }
 
-/* Header Section */
 .header {
   background: var(--card-bg);
   border-radius: 28px;
@@ -354,7 +309,6 @@ h1 {
   align-items: center;
 }
 
-/* Action Bar */
 .action-bar {
   background: var(--card-bg);
   border-radius: 60px;
@@ -368,7 +322,6 @@ h1 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* Buttons */
 .btn {
   border: none;
   padding: 8px 16px;
@@ -445,7 +398,7 @@ h1 {
   min-height: 44px;
 }
 
-/* Button Colors (Specific) */
+/* Button Colors */
 #darkModeToggle {
   background: #1e466e !important;
   color: white !important;
@@ -630,7 +583,6 @@ body.dark #darkModeToggle {
   background: var(--hover-bg);
 }
 
-/* Tab Content Display */
 .tab-content {
   display: none;
 }
@@ -708,15 +660,12 @@ body.dark #darkModeToggle {
 /* RESPONSIVE DESIGN (Mobile First)             */
 /* --------------------------------------------- */
 @media (max-width: 768px) {
-  /* Hide desktop elements */
   .action-bar {
     display: none !important;
   }
   .desktop-nav {
     display: none;
   }
-
-  /* Show mobile elements */
   .mobile-nav {
     display: block;
   }
@@ -724,14 +673,12 @@ body.dark #darkModeToggle {
     display: block;
   }
 
-  /* Header layout */
   .header {
     flex-direction: column;
     align-items: stretch;
     padding: 12px 16px;
     gap: 12px;
   }
-
   h1 {
     font-size: 1.1rem;
     justify-content: center;
@@ -743,7 +690,6 @@ body.dark #darkModeToggle {
     gap: 8px;
     margin-bottom: 0;
   }
-
   .stat-card {
     flex: 1;
     justify-content: center;
@@ -758,7 +704,6 @@ body.dark #darkModeToggle {
     width: 100%;
     margin-top: 4px;
   }
-
   .header-buttons .btn {
     flex: 1;
     justify-content: center;
@@ -768,16 +713,13 @@ body.dark #darkModeToggle {
     max-width: 120px;
   }
 
-  /* Bottom padding for fixed bar */
   .tab-content.active {
     padding-bottom: 80px;
   }
-
   .container {
     padding-bottom: 0;
   }
 
-  /* Mobile log entries - stacked layout */
   .logs-column-headers {
     display: none;
   }
@@ -804,7 +746,6 @@ body.dark #darkModeToggle {
   }
 }
 
-/* Desktop specific */
 @media (min-width: 769px) {
   .mobile-nav {
     display: none;
@@ -1205,7 +1146,6 @@ td {
   color: var(--text-primary);
 }
 
-/* Stock Status Row Styles */
 .stock-low {
   background: var(--stock-low-bg);
   border-left: 3px solid var(--stock-low-border);
@@ -1268,7 +1208,6 @@ td {
   opacity: 0.5;
 }
 
-/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -1405,18 +1344,18 @@ td {
   width: 100%;
   max-width: 550px;
   border-radius: 28px 28px 0 0;
+  padding: 20px;
   box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.2);
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  animation: slideUp 0.3s ease;
+  color: var(--text-primary);
 }
 
 @media (min-width: 768px) {
   .modal-card {
     border-radius: 28px;
     max-height: 85vh;
-    margin: 20px;
   }
 }
 
@@ -1439,15 +1378,15 @@ td {
 
 .close-modal {
   position: absolute;
-  top: 16px;
+  top: 12px;
   right: 16px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: var(--hover-bg);
+  border-radius: 40px;
+  background: rgba(0, 0, 0, 0.05);
   font-size: 20px;
   cursor: pointer;
   color: var(--text-secondary);
@@ -1456,7 +1395,7 @@ td {
 }
 
 .close-modal:hover {
-  background: var(--border-color);
+  background: rgba(0, 0, 0, 0.1);
   color: #e76f51;
 }
 
@@ -1464,12 +1403,12 @@ td {
   position: sticky;
   bottom: 0;
   background: var(--modal-bg);
-  padding: 16px 0 8px;
+  padding: 16px 0 8px 0;
   margin-top: 20px;
   border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: center;
   flex-wrap: wrap;
 }
 
@@ -1478,10 +1417,25 @@ td {
   justify-content: center;
   padding: 12px 16px;
   font-size: 0.85rem;
-  min-width: 100px;
+  min-height: 48px;
+  max-width: 200px;
+}
+/* Center buttons in Part Details and Log Details modals */
+.details-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
 }
 
-/* Form Groups */
+.details-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 12px 16px;
+  max-width: 200px;
+}
 .form-group {
   margin-bottom: 18px;
 }
@@ -1490,26 +1444,24 @@ td {
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  font-size: 0.85rem;
   color: var(--text-primary);
+  font-size: 0.85rem;
 }
 
 .form-group input,
-.form-group textarea,
-.form-group select {
+.form-group textarea {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--input-border);
-  border-radius: 16px;
-  font-size: 0.9rem;
+  border-radius: 24px;
+  font-size: 16px;
+  transition: all 0.2s;
   background: var(--input-bg);
   color: var(--text-primary);
-  transition: all 0.2s;
 }
 
 .form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.form-group textarea:focus {
   outline: none;
   border-color: #2d6a4f;
   box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
@@ -1523,39 +1475,34 @@ td {
   margin: 16px 0;
 }
 
-.details-modal .details-row {
+.details-row {
   display: flex;
   flex-wrap: wrap;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border-color);
 }
 
-.details-modal .details-label {
-  width: 110px;
+.details-label {
+  width: 100px;
   font-weight: 600;
-  font-size: 0.8rem;
   color: var(--text-secondary);
+  font-size: 0.75rem;
 }
 
-.details-modal .details-value {
+.details-value {
   flex: 1;
-  font-size: 0.9rem;
   color: var(--text-primary);
+  font-size: 0.85rem;
   word-break: break-word;
 }
 
-.details-modal .details-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-color);
-}
-
-.details-modal .details-actions .btn {
-  flex: 1;
-  justify-content: center;
-  padding: 12px;
+.location-badge {
+  background: var(--kpi-icon-bg);
+  padding: 3px 10px;
+  border-radius: 40px;
+  display: inline-block;
+  font-size: 0.7rem;
+  color: var(--text-primary);
 }
 
 /* Photo Container */
@@ -1572,24 +1519,23 @@ td {
 
 .part-photo {
   max-width: 200px;
-  max-height: 150px;
-  border-radius: 12px;
+  border-radius: 16px;
   object-fit: cover;
-  border: 1px solid var(--border-color);
 }
 
 .part-photo-placeholder {
-  width: 200px;
+  width: 100%;
+  max-width: 200px;
   height: 150px;
   background: var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   color: var(--text-secondary);
   font-size: 0.8rem;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .photo-buttons {
@@ -1602,7 +1548,7 @@ td {
 .photo-buttons .btn {
   flex: 1;
   justify-content: center;
-  padding: 10px 16px;
+  padding: 12px;
 }
 
 /* Quantity Adjust Group */
@@ -1611,18 +1557,17 @@ td {
   align-items: center;
   gap: 12px;
   background: var(--stat-card-bg);
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 60px;
   justify-content: center;
-  border: 1px solid var(--border-color);
 }
 
 .qty-adjust-group button {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 40px;
   cursor: pointer;
   font-size: 1.2rem;
   transition: all 0.2s;
@@ -1634,21 +1579,11 @@ td {
   border-color: #2d6a4f;
 }
 
-.qty-adjust-group .qty-value {
+.qty-value {
   font-size: 1.3rem;
   font-weight: 700;
   min-width: 60px;
   text-align: center;
-  color: var(--text-primary);
-}
-
-/* Location Badge */
-.location-badge {
-  background: var(--kpi-icon-bg);
-  padding: 4px 12px;
-  border-radius: 40px;
-  display: inline-block;
-  font-size: 0.75rem;
   color: var(--text-primary);
 }
 
@@ -1668,31 +1603,31 @@ td {
 }
 
 .qr-manual-input {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .qr-manual-input input {
   flex: 1;
-  padding: 12px 16px;
+  padding: 14px;
   border: 1px solid var(--input-border);
   border-radius: 40px;
-  font-size: 0.9rem;
+  font-size: 16px;
   background: var(--input-bg);
   color: var(--text-primary);
 }
 
 .qr-manual-input button {
-  padding: 12px 20px;
+  padding: 14px 20px;
 }
 
 .qr-status {
-  margin-top: 12px;
-  padding: 10px;
+  margin-top: 10px;
+  padding: 8px;
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-align: center;
   background: var(--kpi-icon-bg);
   color: var(--text-primary);
@@ -1702,18 +1637,13 @@ td {
   background: var(--stat-card-bg);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  margin-top: 12px;
+  margin-top: 10px;
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border-radius: 40px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.cancel-scan-btn:hover {
-  background: var(--hover-bg);
 }
 
 /* Camera Modal */
@@ -1736,14 +1666,14 @@ td {
 .camera-buttons {
   display: flex;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 16px;
   justify-content: center;
 }
 
 .camera-buttons .btn {
   flex: 1;
   justify-content: center;
-  padding: 12px;
+  padding: 14px;
 }
 
 /* Report Modal */
@@ -1753,7 +1683,7 @@ td {
   margin: 16px 0;
 }
 
-.report-modal .report-item {
+.report-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1763,13 +1693,13 @@ td {
   flex-wrap: wrap;
 }
 
-.report-modal .report-item-part {
+.report-item-part {
   font-weight: 700;
   color: var(--text-primary);
   font-size: 0.85rem;
 }
 
-.report-modal .report-item-qty {
+.report-item-qty {
   background: #e76f51;
   color: white;
   padding: 4px 12px;
@@ -1778,7 +1708,7 @@ td {
   font-size: 0.8rem;
 }
 
-.report-modal .report-footer {
+.report-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1804,32 +1734,17 @@ td {
 .confirm-modal .warning-icon {
   font-size: 3rem;
   color: #e76f51;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
-.confirm-modal h3 {
-  border-bottom: none;
-  margin-bottom: 10px;
-  padding-bottom: 0;
-}
-
-.confirm-modal .part-details {
-  background: var(--stat-card-bg);
-  padding: 16px;
-  border-radius: 16px;
-  margin: 16px 0;
-  text-align: left;
-  font-size: 0.85rem;
-}
-
-.confirm-actions {
+.confirm-modal .confirm-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
   margin-top: 20px;
 }
 
-.confirm-actions .btn {
+.confirm-modal .confirm-actions .btn {
   flex: 1;
   justify-content: center;
   padding: 12px;
@@ -1838,6 +1753,14 @@ td {
 /* Usage Modal */
 .usage-part-search {
   margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.85rem;
 }
 
 .searchable-dropdown {
@@ -1849,8 +1772,8 @@ td {
   width: 100%;
   padding: 14px 16px;
   border: 2px solid var(--border-color);
-  border-radius: 16px;
-  font-size: 0.9rem;
+  border-radius: 12px;
+  font-size: 16px;
   transition: all 0.2s;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -1859,6 +1782,7 @@ td {
 .usage-search-input:focus {
   outline: none;
   border-color: #2d6a4f;
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
 }
 
 .usage-dropdown {
@@ -1871,14 +1795,18 @@ td {
   background: var(--dropdown-bg);
   border: 2px solid var(--border-color);
   border-top: none;
-  border-radius: 0 0 16px 16px;
+  border-radius: 0 0 12px 12px;
   z-index: 100;
   display: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.searchable-dropdown:focus-within .usage-dropdown {
+  display: block;
+}
+
 .usage-dropdown .part-option {
-  padding: 12px 16px;
+  padding: 14px 16px;
   cursor: pointer;
   border-bottom: 1px solid var(--border-color);
   transition: background 0.2s;
@@ -1892,11 +1820,23 @@ td {
   border-bottom: none;
 }
 
+.usage-dropdown .part-option strong {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.usage-dropdown .part-option small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
 .usage-selected-part {
   margin-top: 12px;
   padding: 14px 16px;
   background: #e0f2e9;
-  border-radius: 16px;
+  border-radius: 12px;
   display: none;
   align-items: center;
   gap: 10px;
@@ -1926,15 +1866,15 @@ td {
   align-items: center;
   gap: 12px;
   background: var(--stat-card-bg);
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 60px;
   border: 1px solid var(--border-color);
 }
 
 .qty-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 40px;
   border: 1px solid var(--border-color);
   background: var(--card-bg);
   cursor: pointer;
@@ -1968,10 +1908,12 @@ td {
 
 .confirm-usage-btn {
   width: 100%;
-  margin-top: 16px;
+  margin-top: 8px;
   padding: 14px;
   font-size: 1rem;
   background: #2d6a4f;
+  position: sticky;
+  bottom: 0;
 }
 
 /* Admin Panel Modal */
@@ -1985,7 +1927,7 @@ td {
 .admin-stat-card {
   background: var(--stat-card-bg);
   padding: 15px;
-  border-radius: 16px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -2015,7 +1957,7 @@ td {
 
 .admin-search i {
   position: absolute;
-  left: 14px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-secondary);
@@ -2023,7 +1965,7 @@ td {
 
 .admin-search input {
   width: 100%;
-  padding: 12px 12px 12px 40px;
+  padding: 12px 12px 12px 35px;
   border: 1px solid var(--border-color);
   border-radius: 40px;
   font-size: 0.85rem;
@@ -2035,7 +1977,7 @@ td {
   max-height: 400px;
   overflow-y: auto;
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 12px;
   margin-bottom: 20px;
 }
 
@@ -2084,28 +2026,23 @@ td {
   background: #7c3aed;
   color: white;
   border: none;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.7rem;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.admin-action-btn:hover {
-  background: #6d28d9;
 }
 
 /* User Permissions Modal */
 .user-permissions-header {
   background: var(--stat-card-bg);
-  padding: 16px;
-  border-radius: 16px;
+  padding: 15px;
+  border-radius: 12px;
   margin-bottom: 20px;
   text-align: center;
 }
 
 .user-permissions-header h4 {
-  margin: 0 0 5px;
+  margin: 0 0 5px 0;
   font-size: 1rem;
   color: var(--text-primary);
 }
@@ -2208,7 +2145,7 @@ input:checked + .toggle-slider:before {
 
 .user-permissions-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin-top: 20px;
   justify-content: flex-end;
 }
@@ -2218,9 +2155,7 @@ input:checked + .toggle-slider:before {
   justify-content: center;
 }
 
-/* --------------------------------------------- */
-/* UTILITY CLASSES                               */
-/* --------------------------------------------- */
+/* Hidden Copy Area */
 .hidden-copy-area {
   position: fixed;
   left: -9999px;
@@ -2264,9 +2199,7 @@ input:checked + .toggle-slider:before {
   scroll-padding-bottom: 80px;
 }
 
-/* --------------------------------------------- */
-/* RESPONSIVE DASHBOARD                         */
-/* --------------------------------------------- */
+/* Responsive Dashboard */
 @media (max-width: 1024px) {
   .dashboard-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -2339,9 +2272,7 @@ input:checked + .toggle-slider:before {
   }
 }
 
-/* --------------------------------------------- */
-/* IPHONE DARK MODE FIX                         */
-/* --------------------------------------------- */
+/* iPhone Dark Mode Fix */
 html,
 body {
   min-height: 100vh;

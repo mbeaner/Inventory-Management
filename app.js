@@ -368,6 +368,11 @@ async function loadAllData() {
   await loadParts();
   await loadUsageLogs();
   refreshAll();
+  // Load dashboard data if dashboard tab is active
+  const dashboardTab = document.getElementById('tab-dashboard');
+  if (dashboardTab && dashboardTab.classList.contains('active')) {
+    await loadDashboardData();
+  }
 }
 async function loadParts() {
   showSyncIndicator('Loading parts...');
