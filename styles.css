@@ -2678,19 +2678,28 @@ body.dark .loading-screen {
 
 /* =========Fix for iphone white banner */
 /* Fix white gap on iPhone top - v18.1.2 */
+body.dark {
+  background: #0f172a !important;
+  background-color: #0f172a !important;
+}
+
 /* Remove any white from the top of the viewport */
 html {
-  background: var(--bg-gradient-start);
+  background: #0f172a;
+}
+
+body.dark html {
+  background: #0f172a;
 }
 
 /* For iPhone notch/safe area */
-body {
+body.dark {
   padding-top: 0;
   margin-top: 0;
 }
 
 /* Ensure the container doesn't create white space */
-.container {
+body.dark .container {
   background: transparent;
   margin-top: 0;
   padding-top: 0;
@@ -2698,7 +2707,8 @@ body {
 
 /* Fix for iOS web view */
 @supports (padding: max(0px)) {
-  body {
+  body.dark {
     padding-top: max(0px, env(safe-area-inset-top));
+    background: #0f172a;
   }
 }
