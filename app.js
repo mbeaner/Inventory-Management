@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v19.0.0
+// INVENTORY MANAGER PRO v19.1.0
 // =============================================
 
 const supabaseClient = window.supabaseClient;
@@ -25,6 +25,7 @@ let pendingDeletePartId = null,
   pendingPhotoDeletePartId = null,
   pendingPhotoPartId = null;
 let reopenEditAfterPhoto = false;
+let scrollPosition = 0; // For scroll locking on mobile
 
 // UI State
 let allState = { page: 1, rows: 50, search: '' };
@@ -70,11 +71,24 @@ const showSyncIndicator = (msg) => {
 
 const hideSyncIndicator = () =>
   setTimeout(() => document.querySelector('.sync-indicator')?.remove(), 500);
+
+// Scroll lock functions for modals (works on desktop and mobile)
+function disableBodyScroll() {
+  scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+  document.body.classList.add('modal-open');
+  document.body.style.top = `-${scrollPosition}px`;
+}
+
+function enableBodyScroll() {
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0, scrollPosition);
+}
+
 const hideModal = (id) => {
   const el = document.getElementById(id);
   if (el) {
     el.style.display = 'none';
-    // Only re-enable scroll if no other modals are open
     const openModals = document.querySelectorAll(
       '.modal[style*="display: flex"]',
     );
@@ -83,6 +97,7 @@ const hideModal = (id) => {
     }
   }
 };
+
 const showModal = (id) => {
   const el = document.getElementById(id);
   if (el) {
@@ -90,6 +105,7 @@ const showModal = (id) => {
     disableBodyScroll();
   }
 };
+
 const escapeHtml = (s) =>
   s
     ? String(s).replace(
@@ -98,14 +114,6 @@ const escapeHtml = (s) =>
       )
     : '';
 
-// Prevent body scroll when modal is open
-function disableBodyScroll() {
-  document.body.classList.add('modal-open');
-}
-
-function enableBodyScroll() {
-  document.body.classList.remove('modal-open');
-}
 // =============================================
 // AUTHENTICATION
 // =============================================
@@ -388,7 +396,6 @@ async function loadAllData() {
   await loadParts();
   await loadUsageLogs();
   refreshAll();
-  // Load dashboard data if dashboard tab is active
   const dashboardTab = document.getElementById('tab-dashboard');
   if (dashboardTab && dashboardTab.classList.contains('active')) {
     await loadDashboardData();
@@ -768,7 +775,7 @@ function renderNeedOrder() {
     tbody.innerHTML = need
       .map(
         (p) =>
-          `<tr><td><span class="clickable-part" onclick="showPartDetails(${p.id})"><strong>${escapeHtml(p.part_number)}</strong></span></td><td>${escapeHtml(p.description || '').substring(0, 40)}</td><td><span class="current-qty-display">${p.current_qty}</span></td><td>${p.baseline_qty}</td><td style="color:#e76f51;font-weight:600;">${p.baseline_qty - p.current_qty}</td></tr>`,
+          `<tr><td><span class="clickable-part" onclick="showPartDetails(${p.id})"><strong>${escapeHtml(p.part_number)}</strong></span></td><td>${escapeHtml(p.description || '').substring(0, 40)}</td><td><span class="current-qty-display">${p.current_qty}</span></td><td>${p.baseline_qty}</td><td style="color:#e76f51;font-weight:600;">${p.baseline_qty - p.current_qty}<\/td><\/tr>`,
       )
       .join('');
 }
@@ -1890,6 +1897,12 @@ window.onclick = (e) => {
     if (id === 'qrScannerModal') closeQrScanner();
     else if (id === 'cameraModal') closeCamera();
     else hideModal(id);
+    const openModals = document.querySelectorAll(
+      '.modal[style*="display: flex"]',
+    );
+    if (openModals.length === 0) {
+      enableBodyScroll();
+    }
   }
 };
 document.addEventListener('click', (e) => {
