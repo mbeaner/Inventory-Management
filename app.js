@@ -26,6 +26,9 @@ let pendingDeletePartId = null,
   pendingPhotoPartId = null;
 let reopenEditAfterPhoto = false;
 let scrollPosition = 0; // For scroll locking on mobile
+let pullToRefreshActive = false;
+let touchStartY = 0;
+let isRefreshing = false;
 
 // UI State
 let allState = { page: 1, rows: 50, search: '' };
@@ -52,6 +55,113 @@ const DARK_MODE_KEY = 'inventoryManager_darkMode';
 // =============================================
 // HELPER FUNCTIONS
 // =============================================
+
+// PULL TO REFRESH (Mobile)
+function initPullToRefresh() {
+  let startY = 0;
+  let pulling = false;
+
+  document.addEventListener(
+    'touchstart',
+    (e) => {
+      // Only trigger at the very top of the page
+      if (window.scrollY === 0 && !isRefreshing) {
+        startY = e.touches[0].clientY;
+        pulling = true;
+      }
+    },
+    { passive: true },
+  );
+
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!pulling || isRefreshing) return;
+
+      const pullDistance = e.touches[0].clientY - startY;
+
+      if (pullDistance > 15 && window.scrollY === 0) {
+        e.preventDefault();
+        // Show the browser's native refresh indicator via meta tag
+        showSyncIndicator('');
+      }
+    },
+    { passive: false },
+  );
+
+  document.addEventListener('touchend', async (e) => {
+    if (!pulling || isRefreshing) {
+      pulling = false;
+      return;
+    }
+
+    const pullDistance = e.changedTouches[0].clientY - startY;
+
+    if (pullDistance > 50 && window.scrollY === 0) {
+      isRefreshing = true;
+      await silentRefresh();
+      isRefreshing = false;
+    }
+
+    pulling = false;
+    startY = 0;
+    hideSyncIndicator();
+  });
+}
+
+async function silentRefresh() {
+  // Show just the spinner without text
+  const spinner = document.createElement('div');
+  spinner.className = 'refresh-spinner';
+  spinner.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+  document.body.appendChild(spinner);
+
+  // Reload all data
+  await loadAllData();
+
+  // Remove spinner
+  setTimeout(() => {
+    spinner.remove();
+  }, 300);
+}
+
+async function refreshCurrentTab() {
+  const activeTab = document.querySelector('.tab-content.active');
+  const tabId = activeTab?.id;
+
+  if (!tabId) return;
+
+  // Show sync indicator
+  showSyncIndicator('Refreshing...');
+
+  // Refresh based on active tab
+  switch (tabId) {
+    case 'tab-dashboard':
+      await loadDashboardData();
+      break;
+    case 'tab-all':
+      await loadParts();
+      renderAllParts();
+      break;
+    case 'tab-needorder':
+      await loadParts();
+      renderNeedOrder();
+      break;
+    case 'tab-critical':
+      await loadParts();
+      renderCritical();
+      break;
+    case 'tab-logs':
+      await loadUsageLogs();
+      renderLogs();
+      break;
+    default:
+      await loadAllData();
+  }
+
+  hideSyncIndicator();
+}
+
 const showToast = (msg, isErr) => {
   const t = document.createElement('div');
   t.className = 'success-toast';
@@ -1922,6 +2032,7 @@ document.addEventListener('click', (e) => {
 // =============================================
 initMobileMenu();
 initUsageQuantityControls();
+initPullToRefresh();
 window.changeAllPage = changeAllPage;
 window.showPartDetails = showPartDetails;
 window.showLogDetails = showLogDetails;
