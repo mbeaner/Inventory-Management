@@ -1,36 +1,49 @@
 // =============================================
-// INVENTORY MANAGER PRO v20.1.8
+// INVENTORY MANAGER PRO v21.0.0
 // =============================================
+// A complete inventory management system with Supabase backend
+// Features: Authentication, CRUD operations, Dashboard, QR scanning,
+//           Dark mode, Pull-to-refresh, Mobile responsive, Admin panel
 
 const supabaseClient = window.supabaseClient;
 
 // =============================================
 // GLOBAL VARIABLES
 // =============================================
+
+// Data stores
 let parts = [],
   usageLogs = [],
   currentUser = null,
   isAdmin = false,
   currentEditingUser = null;
+
+// QR Scanner & Camera
 let html5QrCode = null,
   isScannerActive = false,
   cameraStream = null,
   usageChart = null;
+
+// Edit state trackers
 let currentEditPartId = null,
   currentEditLogId = null,
   selectedPartId = null,
   currentDetailsPartId = null;
+
+// Delete pending trackers
 let pendingDeletePartId = null,
   pendingDeleteLogId = null,
   pendingPhotoDeletePartId = null,
   pendingPhotoPartId = null;
+
+// UI state
 let reopenEditAfterPhoto = false;
-let scrollPosition = 0; // For scroll locking on mobile
+let scrollPosition = 0;
 let pullToRefreshActive = false;
 let touchStartY = 0;
 let isRefreshing = false;
 
-// UI State
+// Tab UI state
 let allState = { page: 1, rows: 50, search: '' };
 let needState = { search: '' };
 let criticalState = { search: '' };
@@ -38,7 +51,7 @@ let logsSearch = '';
 let allSortField = 'part_number',
   allSortDirection = 'asc';
 
-// Permissions
+// User permissions cache
 let windowCurrentPermissions = {
   canEditParts: false,
   canDeleteParts: false,
@@ -48,7 +61,7 @@ let windowCurrentPermissions = {
   canLogUsage: false,
 };
 
-// Constants
+// Local storage keys
 const STORAGE_KEY = 'inventoryManager_activeTab';
 const DARK_MODE_KEY = 'inventoryManager_darkMode';
 
@@ -56,7 +69,10 @@ const DARK_MODE_KEY = 'inventoryManager_darkMode';
 // HELPER FUNCTIONS
 // =============================================
 
-// PULL TO REFRESH (Mobile)
+/**
+ * Pull to refresh functionality for mobile devices
+ * Performs a full page reload when user pulls down from top
+ */
 function initPullToRefresh() {
   let startY = 0;
   let pulling = false;
@@ -64,7 +80,6 @@ function initPullToRefresh() {
   document.addEventListener(
     'touchstart',
     (e) => {
-      // Only trigger at the very top of the page
       if (window.scrollY === 0 && !isRefreshing) {
         startY = e.touches[0].clientY;
         pulling = true;
@@ -82,7 +97,6 @@ function initPullToRefresh() {
 
       if (pullDistance > 15 && window.scrollY === 0) {
         e.preventDefault();
-        // Show the browser's native refresh indicator via meta tag
         showSyncIndicator('');
       }
     },
@@ -109,48 +123,12 @@ function initPullToRefresh() {
   });
 }
 
+//Silent refresh - performs a full page reload
 async function silentRefresh() {
-  // Just do a full page refresh
   location.reload();
 }
 
-async function refreshCurrentTab() {
-  const activeTab = document.querySelector('.tab-content.active');
-  const tabId = activeTab?.id;
-
-  if (!tabId) return;
-
-  // Show sync indicator
-  showSyncIndicator('Refreshing...');
-
-  // Refresh based on active tab
-  switch (tabId) {
-    case 'tab-dashboard':
-      await loadDashboardData();
-      break;
-    case 'tab-all':
-      await loadParts();
-      renderAllParts();
-      break;
-    case 'tab-needorder':
-      await loadParts();
-      renderNeedOrder();
-      break;
-    case 'tab-critical':
-      await loadParts();
-      renderCritical();
-      break;
-    case 'tab-logs':
-      await loadUsageLogs();
-      renderLogs();
-      break;
-    default:
-      await loadAllData();
-  }
-
-  hideSyncIndicator();
-}
-
+//Display a toast notification
 const showToast = (msg, isErr) => {
   const t = document.createElement('div');
   t.className = 'success-toast';
@@ -160,6 +138,7 @@ const showToast = (msg, isErr) => {
   setTimeout(() => t.remove(), 2500);
 };
 
+//Show a loading indicator for async operations
 const showSyncIndicator = (msg) => {
   document.querySelector('.sync-indicator')?.remove();
   const indicator = document.createElement('div');
@@ -171,50 +150,49 @@ const showSyncIndicator = (msg) => {
 const hideSyncIndicator = () =>
   setTimeout(() => document.querySelector('.sync-indicator')?.remove(), 500);
 
-// Scroll lock functions for modals (works on desktop and mobile)
+//Disable body scroll when modal is open (prevents background scrolling)
 function disableBodyScroll() {
   scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
   document.body.classList.add('modal-open');
   document.body.style.top = `-${scrollPosition}px`;
 }
 
+//Re-enable body scroll when modal is closed
 function enableBodyScroll() {
   document.body.classList.remove('modal-open');
   document.body.style.top = '';
   window.scrollTo(0, scrollPosition);
 }
 
+//Hide a modal with animation
 const hideModal = (id) => {
   const el = document.getElementById(id);
   if (el) {
-    // Remove active class to trigger reverse animation
     el.classList.remove('active');
-    // Wait for animation to finish before hiding
+    // Wait for animation to finish before hiding (200ms matches CSS transition)
     setTimeout(() => {
       el.style.display = 'none';
       const openModals = document.querySelectorAll('.modal.active');
       if (openModals.length === 0) {
         enableBodyScroll();
       }
-    }, 200); // Match the 2 second animation
+    }, 200);
   }
 };
 
+//Show a modal with animation
 const showModal = (id) => {
   const el = document.getElementById(id);
   if (el) {
-    // Remove active class if present
     el.classList.remove('active');
-    // Set display to flex
     el.style.display = 'flex';
-    // Force a reflow
-    void el.offsetHeight;
-    // Add active class to trigger animation
+    void el.offsetHeight; // Force reflow to ensure animation triggers
     el.classList.add('active');
     disableBodyScroll();
   }
 };
 
+//Escape HTML to prevent XSS attacks
 const escapeHtml = (s) =>
   s
     ? String(s).replace(
@@ -226,6 +204,8 @@ const escapeHtml = (s) =>
 // =============================================
 // AUTHENTICATION
 // =============================================
+
+//Check if user has an active session on page load
 async function checkSession() {
   const loading = document.getElementById('loadingScreen');
   const auth = document.getElementById('authContainer');
@@ -251,6 +231,7 @@ async function checkSession() {
   }
 }
 
+//Login user with email and password
 async function login(email, password) {
   showAuthMessage('', '');
   setAuthLoading(true);
@@ -279,6 +260,7 @@ async function login(email, password) {
   return true;
 }
 
+//Register a new user account
 async function register(email, password, confirm) {
   showAuthMessage('', '');
   if (password !== confirm) {
@@ -307,6 +289,7 @@ async function register(email, password, confirm) {
   return true;
 }
 
+//Logout current user
 async function logout() {
   const loading = document.getElementById('loadingScreen');
   if (loading) loading.style.display = 'flex';
@@ -324,6 +307,7 @@ async function logout() {
   if (loading) loading.style.display = 'none';
 }
 
+//Display authentication message
 function showAuthMessage(msg, type) {
   const div = document.getElementById('authMessage');
   div.textContent = msg;
@@ -331,6 +315,7 @@ function showAuthMessage(msg, type) {
   div.style.display = msg ? 'block' : 'none';
 }
 
+//Set loading state on auth buttons
 function setAuthLoading(loading) {
   const loginBtn = document.getElementById('loginBtn');
   const registerBtn = document.getElementById('registerBtn');
@@ -343,6 +328,7 @@ function setAuthLoading(loading) {
   }
 }
 
+//Switch to login form view
 function switchToLogin() {
   document.getElementById('loginForm').classList.add('active');
   document.getElementById('registerForm').classList.remove('active');
@@ -351,6 +337,7 @@ function switchToLogin() {
   showAuthMessage('', '');
 }
 
+//Switch to register form view
 function switchToRegister() {
   document.getElementById('registerForm').classList.add('active');
   document.getElementById('loginForm').classList.remove('active');
@@ -362,6 +349,7 @@ function switchToRegister() {
 // =============================================
 // DARK MODE
 // =============================================
+
 function initDarkMode() {
   const isDark = localStorage.getItem(DARK_MODE_KEY) === 'dark';
   document.body.classList.toggle('dark', isDark);
@@ -389,9 +377,11 @@ function toggleDarkMode() {
 // =============================================
 // TAB MANAGEMENT
 // =============================================
+
 function saveActiveTab(tabId) {
   localStorage.setItem(STORAGE_KEY, tabId);
 }
+
 function restoreActiveTab() {
   const saved = localStorage.getItem(STORAGE_KEY);
   activateTab(
@@ -401,6 +391,8 @@ function restoreActiveTab() {
       : 'dashboard',
   );
 }
+
+//Activate a specific tab by ID
 function activateTab(tabId) {
   document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
@@ -411,6 +403,7 @@ function activateTab(tabId) {
   document.getElementById(`tab-${tabId}`).classList.add('active');
   if (tabId === 'dashboard') loadDashboardData();
 }
+
 function switchToTab(tabId) {
   activateTab(tabId);
   saveActiveTab(tabId);
@@ -419,6 +412,8 @@ function switchToTab(tabId) {
 // =============================================
 // PERMISSIONS
 // =============================================
+
+//Check current user's admin status and permissions
 async function checkAdminStatus() {
   if (!currentUser) return false;
   const { data, error } = await supabaseClient
@@ -441,6 +436,7 @@ async function checkAdminStatus() {
   return isAdmin;
 }
 
+//Check if user has a specific permission
 async function userHasPermission(perm) {
   if (!currentUser || isAdmin) return isAdmin;
   const { data, error } = await supabaseClient
@@ -451,6 +447,7 @@ async function userHasPermission(perm) {
   return !error && data?.[perm];
 }
 
+//Update UI elements based on user permissions
 async function updateUIByPermissions() {
   if (!currentUser) return;
   const canAddParts = await userHasPermission('can_add_parts');
@@ -472,6 +469,7 @@ async function updateUIByPermissions() {
   updateBottomActionBarVisibility();
 }
 
+//Show/hide mobile bottom action bar buttons based on permissions
 function updateBottomActionBarVisibility() {
   const btns = {
     add: document.getElementById('mobileAddPartBtn'),
@@ -499,8 +497,10 @@ function updateBottomActionBarVisibility() {
 }
 
 // =============================================
-// DATABASE CRUD
+// DATABASE CRUD OPERATIONS
 // =============================================
+
+//Load all data from database (parts and usage logs)
 async function loadAllData() {
   await loadParts();
   await loadUsageLogs();
@@ -510,55 +510,63 @@ async function loadAllData() {
     await loadDashboardData();
   }
 }
+
+//Load parts from Supabase
 async function loadParts() {
   showSyncIndicator('Loading parts...');
-
-  // Add cache-busting timestamp
-  const timestamp = Date.now();
-
   const { data, error } = await supabaseClient
     .from('parts')
     .select('*')
     .order('part_number');
-
   hideSyncIndicator();
   if (error) showToast(`Error loading parts: ${error.message}`, true);
   else parts = data || [];
 }
-async function loadUsageLogs() {
-  // Add cache-busting timestamp
-  const timestamp = Date.now();
 
+//Load usage logs from Supabase
+async function loadUsageLogs() {
   const { data, error } = await supabaseClient
     .from('usage_logs')
     .select('*')
     .order('created_at', { ascending: false });
-
   if (error) showToast(`Error loading logs: ${error.message}`, true);
   else usageLogs = data || [];
 }
+
+//Save a part to database
 async function savePart(part) {
   return await saveToTable('parts', part);
 }
+
+//Update an existing part
 async function updatePart(id, updates) {
   return await updateInTable('parts', id, updates);
 }
+
+//Delete a part from database
 async function deletePart(id) {
   return await deleteFromTable('parts', id);
 }
+
+//Save a usage log entry
 async function saveUsageLog(log) {
   return await saveToTable('usage_logs', {
     ...log,
     created_by_email: currentUser?.email || 'Unknown User',
   });
 }
+
+//Update an existing usage log
 async function updateUsageLog(id, updates) {
   return await updateInTable('usage_logs', id, updates);
 }
+
+//Delete a usage log
 async function deleteUsageLog(id) {
   return await deleteFromTable('usage_logs', id);
 }
 
+//Generic save to table function
 async function saveToTable(table, data) {
   showSyncIndicator('Saving...');
   const { data: result, error } = await supabaseClient
@@ -569,6 +577,8 @@ async function saveToTable(table, data) {
   if (error) showToast(`Error saving: ${error.message}`, true);
   return result?.[0];
 }
+
+//Generic update in table function
 async function updateInTable(table, id, updates) {
   showSyncIndicator('Updating...');
   const { data, error } = await supabaseClient
@@ -580,6 +590,8 @@ async function updateInTable(table, id, updates) {
   if (error) showToast(`Error updating: ${error.message}`, true);
   return data?.[0];
 }
+
+//Generic delete from table function
 async function deleteFromTable(table, id) {
   showSyncIndicator('Deleting...');
   const { error } = await supabaseClient.from(table).delete().eq('id', id);
@@ -587,6 +599,8 @@ async function deleteFromTable(table, id) {
   if (error) showToast(`Error deleting: ${error.message}`, true);
   return !error;
 }
+
+//Upload a photo to Supabase Storage
 async function uploadPhoto(partId, dataUrl) {
   const blob = await (await fetch(dataUrl)).blob();
   const fileName = `part-${partId}-${Date.now()}.jpg`;
@@ -602,6 +616,8 @@ async function uploadPhoto(partId, dataUrl) {
     .getPublicUrl(fileName);
   return data.publicUrl;
 }
+
+//Delete a photo from Supabase Storage
 async function deletePhoto(url) {
   if (!url) return;
   const fileName = url.split('/').pop();
@@ -611,6 +627,8 @@ async function deletePhoto(url) {
 // =============================================
 // DASHBOARD
 // =============================================
+
+//Load all dashboard components
 async function loadDashboardData() {
   await Promise.all([
     updateKPICards(),
@@ -620,6 +638,8 @@ async function loadDashboardData() {
     updateRecentActivity(),
   ]);
 }
+
+//Update KPI cards with current statistics
 async function updateKPICards() {
   const total = parts.length;
   const low = parts.filter((p) => p.current_qty < p.baseline_qty).length;
@@ -642,6 +662,8 @@ async function updateKPICards() {
     ? `▲ +${added} this month`
     : 'No new parts';
 }
+
+//Update usage trends chart (30 day history)
 async function updateUsageTrendsChart() {
   const days = [];
   for (let i = 29; i >= 0; i--) {
@@ -691,6 +713,8 @@ async function updateUsageTrendsChart() {
     },
   );
 }
+
+//Update top 5 most used parts (last 30 days)
 async function updateTopUsedParts() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
   const count = {};
@@ -726,6 +750,8 @@ async function updateTopUsedParts() {
     )
     .join('');
 }
+
+//Update low stock alerts section
 async function updateLowStockAlerts() {
   const low = parts
     .filter((p) => p.current_qty < p.baseline_qty)
@@ -753,6 +779,8 @@ async function updateLowStockAlerts() {
     })
     .join('');
 }
+
+//Update recent activity feed (last 10 usage logs)
 async function updateRecentActivity() {
   const container = document.getElementById('recentActivityList');
   if (!usageLogs.length) {
@@ -781,12 +809,16 @@ async function updateRecentActivity() {
 // =============================================
 // RENDER FUNCTIONS
 // =============================================
+
+//Refresh all rendered views
 function refreshAll() {
   renderAllParts();
   renderNeedOrder();
   renderCritical();
   renderLogs();
 }
+
+//Handle table sorting
 function handleSort(field) {
   if (allSortField === field)
     allSortDirection = allSortDirection === 'asc' ? 'desc' : 'asc';
@@ -797,6 +829,8 @@ function handleSort(field) {
   allState.page = 1;
   renderAllParts();
 }
+
+//Update sort icon states in table header
 function updateSortIcons() {
   document.querySelectorAll('#tab-all .sortable').forEach((h) => {
     const field = h.getAttribute('data-sort');
@@ -811,6 +845,8 @@ function updateSortIcons() {
     }
   });
 }
+
+//Render the All Parts table with pagination and sorting
 function renderAllParts() {
   let filtered = parts.filter(
     (p) =>
@@ -864,6 +900,8 @@ function renderAllParts() {
   ).length;
   updateSortIcons();
 }
+
+//Generate pagination HTML
 function renderPagination(page, total, func) {
   if (total <= 1) return '';
   let html = `<button class="page-btn" onclick="${func}(${Math.max(1, page - 1)})">◀</button>`;
@@ -872,10 +910,13 @@ function renderPagination(page, total, func) {
   html += `<button class="page-btn" onclick="${func}(${Math.min(total, page + 1)})">▶</button><span class="pagination-info">Page ${page} of ${total}</span>`;
   return html;
 }
+
 function changeAllPage(p) {
   allState.page = p;
   renderAllParts();
 }
+
+//Render the Need Order tab (parts below baseline)
 function renderNeedOrder() {
   let need = parts.filter((p) => p.current_qty < p.baseline_qty);
   if (needState.search)
@@ -903,6 +944,8 @@ function renderNeedOrder() {
       )
       .join('');
 }
+
+//Render the Critical tab (parts below 50% of baseline)
 function renderCritical() {
   let critical = parts.filter((p) => p.current_qty < p.baseline_qty * 0.5);
   if (criticalState.search)
@@ -915,7 +958,7 @@ function renderCritical() {
   if (!tbody) return;
   if (!critical.length)
     tbody.innerHTML =
-      '<tr><td colspan="5" style="text-align:center;padding:30px;">No critical parts<\/td><\/tr>';
+      '<td><td colspan="5" style="text-align:center;padding:30px;">No critical parts<\/td><\/tr>';
   else
     tbody.innerHTML = critical
       .map(
@@ -925,11 +968,13 @@ function renderCritical() {
         <td>${escapeHtml(p.description || '').substring(0, 40)}</td>
         <td><span class="current-qty-display">${p.current_qty}</span></td>
         <td>${p.baseline_qty}</td>
-        <td style="color:#c2410c;font-weight:600;">${Math.round((p.current_qty / p.baseline_qty) * 100)}%</td>
-      </tr>`,
+        <td style="color:#c2410c;font-weight:600;">${Math.round((p.current_qty / p.baseline_qty) * 100)}%<\/td>
+      </table>`,
       )
       .join('');
 }
+
+//Render the Usage Logs tab
 function renderLogs() {
   let filtered = usageLogs.filter(
     (l) =>
@@ -953,8 +998,10 @@ function renderLogs() {
 }
 
 // =============================================
-// DETAILS & LOGS
+// DETAILS & LOGS MODALS
 // =============================================
+
+//Show part details modal
 function showPartDetails(id) {
   const p = parts.find((x) => x.id === id);
   if (!p) return;
@@ -985,6 +1032,8 @@ function showPartDetails(id) {
   if (logBtn) logBtn.style.display = canLog ? 'inline-flex' : 'none';
   showModal('partDetailsModal');
 }
+
+//Show usage log details modal
 function showLogDetails(id) {
   const log = usageLogs.find((l) => l.id === id);
   if (!log) return;
@@ -1018,6 +1067,8 @@ function showLogDetails(id) {
   }
   showModal('logDetailsModal');
 }
+
+//Log usage of a part (decrease quantity)
 async function logUsage(partId, qty, note) {
   const part = parts.find((p) => p.id === partId);
   if (!part || qty <= 0 || part.current_qty < qty) {
@@ -1045,6 +1096,8 @@ async function logUsage(partId, qty, note) {
 // =============================================
 // EDIT FUNCTIONS
 // =============================================
+
+//Open edit part modal
 function openEditPart(id) {
   if (!(windowCurrentPermissions.canEditParts || isAdmin)) {
     showToast('You do not have permission to edit parts', true);
@@ -1078,6 +1131,8 @@ function openEditPart(id) {
   newRemoveBtn.onclick = () => handleRemovePhotoInEdit(p.id);
   showModal('editModal');
 }
+
+//Open quick log modal for a specific part
 function openQuickLog(id) {
   const p = parts.find((x) => x.id === id);
   if (!p) return;
@@ -1094,6 +1149,8 @@ function openQuickLog(id) {
   document.getElementById('partListDropdown').style.display = 'none';
   showModal('usageModal');
 }
+
+//Open edit log modal
 function openEditLog(id) {
   if (!(windowCurrentPermissions.canEditLogs || isAdmin)) {
     showToast('You do not have permission to edit logs', true);
@@ -1110,6 +1167,8 @@ function openEditLog(id) {
   document.getElementById('editLogNote').value = log.note || '';
   showModal('editLogModal');
 }
+
+//Save edited part to database
 async function saveEditPart() {
   const p = parts.find((x) => x.id === currentEditPartId);
   if (!p) return;
@@ -1140,6 +1199,8 @@ async function saveEditPart() {
     showToast('✓ Part updated successfully');
   }
 }
+
+//Save edited log to database
 async function saveEditLog() {
   const log = usageLogs.find((l) => l.id === currentEditLogId);
   if (!log) return;
@@ -1160,6 +1221,8 @@ async function saveEditLog() {
     showToast('✓ Log entry updated successfully');
   }
 }
+
+//Add a new part to inventory
 async function addNewPart() {
   if (!(windowCurrentPermissions.canAddParts || isAdmin)) {
     showToast('You do not have permission to add parts', true);
@@ -1194,6 +1257,8 @@ async function addNewPart() {
     showToast(`✓ Part "${pn}" added successfully`);
   }
 }
+
+//Adjust quantity in edit modal
 function adjustQty(delta) {
   const disp = document.getElementById('editCurrentQtyDisplay');
   let val = parseInt(disp.innerText) + delta;
@@ -1205,6 +1270,8 @@ function adjustQty(delta) {
 // =============================================
 // QR SCANNER
 // =============================================
+
+//Open QR scanner modal and initialize scanner
 async function openQrScanner() {
   await stopQrScanner();
   document.getElementById('manualQrInput').value = '';
@@ -1213,6 +1280,8 @@ async function openQrScanner() {
   showModal('qrScannerModal');
   setTimeout(() => startQrScanner(), 300);
 }
+
+//Start the QR code scanner
 async function startQrScanner() {
   if (!document.getElementById('qr-reader')) return;
   await stopQrScanner();
@@ -1235,6 +1304,8 @@ async function startQrScanner() {
       '<i class="fas fa-exclamation-triangle"></i> Camera error';
   }
 }
+
+//Stop the QR code scanner
 async function stopQrScanner() {
   if (html5QrCode && isScannerActive) {
     try {
@@ -1247,6 +1318,8 @@ async function stopQrScanner() {
   }
   html5QrCode = null;
 }
+
+//Handle successful QR code scan
 async function onQrCodeSuccess(text) {
   await stopQrScanner();
   hideModal('qrScannerModal');
@@ -1264,6 +1337,8 @@ async function onQrCodeSuccess(text) {
     showModal('addPartModal');
   } else showToast('Part not found', true);
 }
+
+//Manual part lookup by part number
 function manualQrLookup() {
   const val = document.getElementById('manualQrInput').value.trim();
   if (!val) {
@@ -1285,14 +1360,18 @@ function manualQrLookup() {
     showModal('addPartModal');
   } else showToast('Part not found', true);
 }
+
+//Close QR scanner and modal
 async function closeQrScanner() {
   await stopQrScanner();
   hideModal('qrScannerModal');
 }
 
 // =============================================
-// CAMERA
+// CAMERA FUNCTIONS
 // =============================================
+
+//Start camera for photo capture
 async function startCamera() {
   await stopCamera();
   try {
@@ -1304,6 +1383,8 @@ async function startCamera() {
     showToast(`Camera error: ${err.message}`, true);
   }
 }
+
+//Stop camera stream
 async function stopCamera() {
   if (cameraStream) {
     cameraStream.getTracks().forEach((t) => t.stop());
@@ -1312,6 +1393,8 @@ async function stopCamera() {
   const video = document.getElementById('camera-video');
   if (video) video.srcObject = null;
 }
+
+//Open camera for editing part photo
 async function openCameraForEdit(partId) {
   pendingPhotoPartId = partId;
   reopenEditAfterPhoto = true;
@@ -1319,6 +1402,8 @@ async function openCameraForEdit(partId) {
   await startCamera();
   showModal('cameraModal');
 }
+
+//Close camera modal
 async function closeCamera() {
   await stopCamera();
   hideModal('cameraModal');
@@ -1328,6 +1413,8 @@ async function closeCamera() {
   }
   pendingPhotoPartId = null;
 }
+
+//Capture photo from camera and upload
 async function capturePhoto() {
   const video = document.getElementById('camera-video');
   const canvas = document.getElementById('camera-canvas');
@@ -1350,6 +1437,8 @@ async function capturePhoto() {
   }
   closeCamera();
 }
+
+//Show confirmation modal for photo removal
 function handleRemovePhotoInEdit(partId) {
   pendingPhotoDeletePartId = partId;
   document.getElementById('confirmTitle').innerHTML =
@@ -1361,6 +1450,8 @@ function handleRemovePhotoInEdit(partId) {
     `<strong>Part:</strong> ${escapeHtml(part.part_number)}<br><strong>Description:</strong> ${escapeHtml(part.description || '')}`;
   showModal('confirmDeleteModal');
 }
+
+//Execute photo deletion
 async function executePhotoDelete() {
   if (pendingPhotoDeletePartId) {
     const part = parts.find((p) => p.id === pendingPhotoDeletePartId);
@@ -1376,8 +1467,10 @@ async function executePhotoDelete() {
 }
 
 // =============================================
-// REPORT & DELETE
+// REPORT & DELETE FUNCTIONS
 // =============================================
+
+//Show order report modal (parts that need reordering)
 function showOrderReport() {
   const need = parts.filter((p) => p.current_qty < p.baseline_qty);
   const container = document.getElementById('reportListContainer');
@@ -1400,6 +1493,8 @@ function showOrderReport() {
   }
   showModal('orderReportModal');
 }
+
+//Copy order report to clipboard and open ordering system
 function copyOrderAndRedirect() {
   const need = parts.filter((p) => p.current_qty < p.baseline_qty);
   if (!need.length) {
@@ -1420,6 +1515,8 @@ function copyOrderAndRedirect() {
     })
     .catch(() => showToast('Failed to copy', true));
 }
+
+//Show confirmation modal for part deletion
 function showConfirmDeletePart(id) {
   if (!(windowCurrentPermissions.canDeleteParts || isAdmin)) {
     showToast('You do not have permission to delete parts', true);
@@ -1437,6 +1534,8 @@ function showConfirmDeletePart(id) {
     `<strong>Part Number:</strong> ${escapeHtml(part.part_number)}<br><strong>Description:</strong> ${escapeHtml(part.description || '')}<br><strong>Current Stock:</strong> ${part.current_qty}<br><strong>Baseline:</strong> ${part.baseline_qty}`;
   showModal('confirmDeleteModal');
 }
+
+//Show confirmation modal for log deletion
 function showConfirmDeleteLog(id) {
   if (!(windowCurrentPermissions.canDeleteLogs || isAdmin)) {
     showToast('You do not have permission to delete logs', true);
@@ -1454,6 +1553,8 @@ function showConfirmDeleteLog(id) {
     `<strong>Part:</strong> ${escapeHtml(log.part_number)}<br><strong>Quantity Used:</strong> ${log.qty_used}<br><strong>Date:</strong> ${escapeHtml(new Date(log.created_at).toLocaleString())}<br><strong>Note:</strong> ${escapeHtml(log.note || '—')}`;
   showModal('confirmDeleteModal');
 }
+
+//Execute the pending delete operation (part or log)
 async function executeDelete() {
   if (pendingDeletePartId !== null) {
     const success = await deletePart(pendingDeletePartId);
@@ -1474,6 +1575,8 @@ async function executeDelete() {
   }
   hideModal('confirmDeleteModal');
 }
+
+//Cancel pending delete operation
 function cancelDelete() {
   pendingDeletePartId = null;
   pendingDeleteLogId = null;
@@ -1484,6 +1587,8 @@ function cancelDelete() {
 // =============================================
 // ADMIN PANEL
 // =============================================
+
+//Open admin panel modal
 async function openAdminPanel() {
   if (!isAdmin) {
     showToast('Admin access required', true);
@@ -1492,6 +1597,8 @@ async function openAdminPanel() {
   await renderAdminPanel();
   showModal('adminPanelModal');
 }
+
+//Render the admin panel user list
 async function renderAdminPanel() {
   const listDiv = document.getElementById('adminUserList');
   if (!listDiv) return;
@@ -1529,6 +1636,8 @@ async function renderAdminPanel() {
     )
     .join('');
 }
+
+//Open user permissions modal for editing
 window.openUserPermissions = async function (userId) {
   if (!isAdmin) {
     showToast('Admin access required', true);
@@ -1584,6 +1693,8 @@ window.openUserPermissions = async function (userId) {
   });
   showModal('userPermissionsModal');
 };
+
+//Save user permissions to database
 async function saveUserPermissions() {
   if (!currentEditingUser) return;
   if (
@@ -1621,8 +1732,10 @@ async function saveUserPermissions() {
 }
 
 // =============================================
-// IMPORT EXCEL
+// EXCEL IMPORT
 // =============================================
+
+//Import parts from Excel/CSV file
 async function importExcel(rows) {
   if (!rows.length) return;
   if (!isAdmin) {
@@ -1688,6 +1801,8 @@ async function importExcel(rows) {
   refreshAll();
   showToast(`Imported: ${added} new, ${updated} updated`);
 }
+
+//Update part dropdown for usage modal
 function updatePartDropdown(search) {
   const searchLower = search.toLowerCase();
   const filtered = parts.filter(
@@ -1721,12 +1836,16 @@ function updatePartDropdown(search) {
     dropdown.appendChild(div);
   });
 }
+
+//Edit part from details modal
 function editFromDetails() {
   if (currentDetailsPartId) {
     hideModal('partDetailsModal');
     openEditPart(currentDetailsPartId);
   }
 }
+
+//Log usage from details modal
 function logFromDetails() {
   if (currentDetailsPartId) {
     hideModal('partDetailsModal');
@@ -1737,20 +1856,19 @@ function logFromDetails() {
 // =============================================
 // INITIALIZATION
 // =============================================
+
+//Initialize mobile hamburger menu
 function initMobileMenu() {
   const hamburger = document.getElementById('hamburgerMenu');
   const dropdown = document.getElementById('mobileDropdown');
 
   if (hamburger && dropdown) {
-    // Toggle dropdown on hamburger click
     hamburger.addEventListener('click', (e) => {
       e.stopPropagation();
       dropdown.classList.toggle('show');
     });
 
-    // Handle mobile tab clicks - use event delegation
     dropdown.addEventListener('click', (e) => {
-      // Find the closest button element (in case click is on icon or span)
       const btn = e.target.closest('.mobile-tab-btn');
       if (btn) {
         const tabId = btn.getAttribute('data-tab');
@@ -1761,7 +1879,6 @@ function initMobileMenu() {
       }
     });
 
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (
         dropdown.classList.contains('show') &&
@@ -1773,11 +1890,9 @@ function initMobileMenu() {
     });
   }
 
-  // Handle desktop tab clicks - separate handler
+  // Handle desktop tab clicks
   document.querySelectorAll('.tab-btn').forEach((btn) => {
-    // Remove any existing listeners to avoid duplicates
     btn.removeEventListener('click', btn._listener);
-    // Add new listener
     const listener = () => {
       const tabId = btn.getAttribute('data-tab');
       if (tabId) {
@@ -1785,9 +1900,11 @@ function initMobileMenu() {
       }
     };
     btn.addEventListener('click', listener);
-    btn._listener = listener; // Store for potential removal
+    btn._listener = listener;
   });
 }
+
+// Initialize quantity controls for usage modal
 function initUsageQuantityControls() {
   const dec = document.getElementById('decrementUsageQty');
   const inc = document.getElementById('incrementUsageQty');
@@ -1808,6 +1925,7 @@ function initUsageQuantityControls() {
 // =============================================
 // EVENT LISTENERS
 // =============================================
+
 document.getElementById('loginTab')?.addEventListener('click', switchToLogin);
 document
   .getElementById('registerTab')
@@ -2072,6 +2190,7 @@ document.addEventListener('click', (e) => {
 // =============================================
 // START APPLICATION
 // =============================================
+
 initMobileMenu();
 initUsageQuantityControls();
 initPullToRefresh();
