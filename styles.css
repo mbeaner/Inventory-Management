@@ -586,7 +586,7 @@ body.dark .mobile-tab-btn.active i {
 }
 
 /* --------------------------------------------- */
-/* MOBILE BOTTOM ACTION BAR                     */
+/* MOBILE BOTTOM ACTION BAR*/
 /* --------------------------------------------- */
 .bottom-action-bar {
   display: none;
@@ -594,7 +594,7 @@ body.dark .mobile-tab-btn.active i {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(var(--card-bg-rgb), 0.95);
+  background: rgba(var(--card-bg-rgb), 0.98);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--border-color);
   padding: 8px 12px;
@@ -622,10 +622,12 @@ body.dark .mobile-tab-btn.active i {
   cursor: pointer;
   flex: 1;
   color: var(--text-secondary);
+  transition: all 0.2s ease;
 }
 
 .bottom-action-btn i {
   font-size: 1.3rem;
+  color: var(--text-secondary);
 }
 
 .bottom-action-btn span {
@@ -633,17 +635,28 @@ body.dark .mobile-tab-btn.active i {
   font-weight: 500;
 }
 
+/* Scan Button - Purple only */
+.bottom-action-btn#mobileScanBtn {
+  color: #7c3aed;
+}
+
+.bottom-action-btn#mobileScanBtn i {
+  color: #7c3aed;
+}
+
+/* Active/Pressed state for all buttons */
 .bottom-action-btn:active {
   transform: scale(0.95);
   background: var(--hover-bg);
 }
 
-.tab-content {
-  display: none;
+/* Dark mode - Scan button purple adjusts */
+body.dark .bottom-action-btn#mobileScanBtn {
+  color: #a78bfa;
 }
 
-.tab-content.active {
-  display: block;
+body.dark .bottom-action-btn#mobileScanBtn i {
+  color: #a78bfa;
 }
 
 /* --------------------------------------------- */
