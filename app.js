@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v20.1.2
+// INVENTORY MANAGER PRO v20.1.3
 // =============================================
 
 const supabaseClient = window.supabaseClient;
@@ -848,8 +848,8 @@ function renderAllParts() {
       .map((p) => {
         const need = p.current_qty < p.baseline_qty;
         const crit = p.current_qty < p.baseline_qty * 0.5;
-        return `<tr class="${need ? (crit ? 'stock-critical' : 'stock-low') : ''}">
-      <td><span class="clickable-part" onclick="showPartDetails(${p.id})"><strong>${escapeHtml(p.part_number)}</strong></span></td>
+        return `<tr class="clickable-part-row ${need ? (crit ? 'stock-critical' : 'stock-low') : ''}" onclick="showPartDetails(${p.id})">
+      <td><strong>${escapeHtml(p.part_number)}</strong></td>
       <td>${escapeHtml(p.description || '').substring(0, 50)}</td>
       <td><span class="current-qty-display">${p.current_qty}</span></td>
       <td>${p.baseline_qty}</td>
@@ -895,7 +895,13 @@ function renderNeedOrder() {
     tbody.innerHTML = need
       .map(
         (p) =>
-          `<tr><td><span class="clickable-part" onclick="showPartDetails(${p.id})"><strong>${escapeHtml(p.part_number)}</strong></span></td><td>${escapeHtml(p.description || '').substring(0, 40)}</td><td><span class="current-qty-display">${p.current_qty}</span></td><td>${p.baseline_qty}</td><td style="color:#e76f51;font-weight:600;">${p.baseline_qty - p.current_qty}<\/td><\/tr>`,
+          `<tr class="clickable-part-row ${p.current_qty < p.baseline_qty * 0.5 ? 'stock-critical' : 'stock-low'}" onclick="showPartDetails(${p.id})">
+        <td><strong>${escapeHtml(p.part_number)}</strong></td>
+        <td>${escapeHtml(p.description || '').substring(0, 40)}</td>
+        <td><span class="current-qty-display">${p.current_qty}</span></td>
+        <td>${p.baseline_qty}</td>
+        <td style="color:#e76f51;font-weight:600;">${p.baseline_qty - p.current_qty}</td>
+      </tr>`,
       )
       .join('');
 }
@@ -916,7 +922,13 @@ function renderCritical() {
     tbody.innerHTML = critical
       .map(
         (p) =>
-          `<tr class="stock-critical"><td><span class="clickable-part" onclick="showPartDetails(${p.id})"><strong>${escapeHtml(p.part_number)}</strong></span></td><td>${escapeHtml(p.description || '').substring(0, 40)}</td><td><span class="current-qty-display">${p.current_qty}</span></td><td>${p.baseline_qty}</td><td style="color:#c2410c;font-weight:600;">${Math.round((p.current_qty / p.baseline_qty) * 100)}%<\/td><\/tr>`,
+          `<tr class="clickable-part-row stock-critical" onclick="showPartDetails(${p.id})">
+        <td><strong>${escapeHtml(p.part_number)}</strong></td>
+        <td>${escapeHtml(p.description || '').substring(0, 40)}</td>
+        <td><span class="current-qty-display">${p.current_qty}</span></td>
+        <td>${p.baseline_qty}</td>
+        <td style="color:#c2410c;font-weight:600;">${Math.round((p.current_qty / p.baseline_qty) * 100)}%</td>
+      </tr>`,
       )
       .join('');
 }

@@ -1,5 +1,5 @@
 /* ============================================= */
-/* INVENTORY MANAGER PRO v20.1.2                */
+/* INVENTORY MANAGER PRO v20.1.3               */
 /* Main Stylesheet                              */
 /* ============================================= */
 
@@ -1248,17 +1248,6 @@ td {
 .status-ok {
   background: var(--status-ok-bg);
   color: var(--status-ok-text);
-}
-
-.clickable-part {
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.clickable-part:hover {
-  color: #2d6a4f;
-  text-decoration: underline;
 }
 
 .sortable {
@@ -2514,4 +2503,19 @@ body.modal-open {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* ============================================= */
+/* CLICKABLE TABLE ROWS (v20.1.3)               */
+/* ============================================= */
+
+/* Make entire row clickable like logs */
+.clickable-part-row {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable-part-row:hover {
+  background: var(--hover-bg);
+  transform: translateX(2px);
 }
