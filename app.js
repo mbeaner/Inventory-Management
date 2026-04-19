@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v20.1.6
+// INVENTORY MANAGER PRO v20.1.7
 // =============================================
 
 const supabaseClient = window.supabaseClient;
@@ -110,19 +110,8 @@ function initPullToRefresh() {
 }
 
 async function silentRefresh() {
-  // Show just the spinner without text
-  const spinner = document.createElement('div');
-  spinner.className = 'refresh-spinner';
-  spinner.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
-  document.body.appendChild(spinner);
-
-  // Reload all data
-  await loadAllData();
-
-  // Remove spinner
-  setTimeout(() => {
-    spinner.remove();
-  }, 300);
+  // Just do a full page refresh
+  location.reload();
 }
 
 async function refreshCurrentTab() {
@@ -523,19 +512,28 @@ async function loadAllData() {
 }
 async function loadParts() {
   showSyncIndicator('Loading parts...');
+
+  // Add cache-busting timestamp
+  const timestamp = Date.now();
+
   const { data, error } = await supabaseClient
     .from('parts')
     .select('*')
     .order('part_number');
+
   hideSyncIndicator();
   if (error) showToast(`Error loading parts: ${error.message}`, true);
   else parts = data || [];
 }
 async function loadUsageLogs() {
+  // Add cache-busting timestamp
+  const timestamp = Date.now();
+
   const { data, error } = await supabaseClient
     .from('usage_logs')
     .select('*')
     .order('created_at', { ascending: false });
+
   if (error) showToast(`Error loading logs: ${error.message}`, true);
   else usageLogs = data || [];
 }
