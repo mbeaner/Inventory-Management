@@ -1,5 +1,5 @@
 /* ============================================= */
-/* INVENTORY MANAGER PRO v20.1.0                */
+/* INVENTORY MANAGER PRO v20.1.2                */
 /* Main Stylesheet                              */
 /* ============================================= */
 
@@ -2454,4 +2454,64 @@ body.modal-open {
 /* Optional: Pulse the shortage text on critical items */
 .low-stock-shortage.critical {
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================= */
+/* IMPROVED MODAL ANIMATIONS v20.1.2 (2 SECOND)  */
+/* ============================================= */
+
+/* Base modal styles - keep your existing ones, just add transitions */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0);
+  justify-content: center;
+  z-index: 1000;
+  transition: background-color 0.2s ease;
+}
+
+/* When modal has class 'active' it becomes visible */
+.modal.active {
+  display: flex !important;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Mobile: Slide-up animation */
+@media (max-width: 768px) {
+  .modal {
+    align-items: flex-end;
+  }
+
+  .modal .modal-card {
+    transform: translateY(100%);
+    transition: transform 0.2s ease-out;
+  }
+
+  .modal.active .modal-card {
+    transform: translateY(0);
+  }
+}
+
+/* Desktop: Fade-in + Scale animation */
+@media (min-width: 769px) {
+  .modal {
+    align-items: center;
+  }
+
+  .modal .modal-card {
+    opacity: 0;
+    transform: scale(0.5);
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.2s ease-out;
+  }
+
+  .modal.active .modal-card {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

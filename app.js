@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v19.1.0
+// INVENTORY MANAGER PRO v20.1.2
 // =============================================
 
 const supabaseClient = window.supabaseClient;
@@ -198,20 +198,30 @@ function enableBodyScroll() {
 const hideModal = (id) => {
   const el = document.getElementById(id);
   if (el) {
-    el.style.display = 'none';
-    const openModals = document.querySelectorAll(
-      '.modal[style*="display: flex"]',
-    );
-    if (openModals.length === 0) {
-      enableBodyScroll();
-    }
+    // Remove active class to trigger reverse animation
+    el.classList.remove('active');
+    // Wait for animation to finish before hiding
+    setTimeout(() => {
+      el.style.display = 'none';
+      const openModals = document.querySelectorAll('.modal.active');
+      if (openModals.length === 0) {
+        enableBodyScroll();
+      }
+    }, 200); // Match the 2 second animation
   }
 };
 
 const showModal = (id) => {
   const el = document.getElementById(id);
   if (el) {
+    // Remove active class if present
+    el.classList.remove('active');
+    // Set display to flex
     el.style.display = 'flex';
+    // Force a reflow
+    void el.offsetHeight;
+    // Add active class to trigger animation
+    el.classList.add('active');
     disableBodyScroll();
   }
 };
@@ -2007,12 +2017,6 @@ window.onclick = (e) => {
     if (id === 'qrScannerModal') closeQrScanner();
     else if (id === 'cameraModal') closeCamera();
     else hideModal(id);
-    const openModals = document.querySelectorAll(
-      '.modal[style*="display: flex"]',
-    );
-    if (openModals.length === 0) {
-      enableBodyScroll();
-    }
   }
 };
 document.addEventListener('click', (e) => {
