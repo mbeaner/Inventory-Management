@@ -1,5 +1,5 @@
 /* ============================================= */
-/* INVENTORY MANAGER PRO v19.2.0                */
+/* INVENTORY MANAGER PRO v20.1.0                */
 /* Main Stylesheet                              */
 /* ============================================= */
 
@@ -2416,4 +2416,42 @@ body.modal-open {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+}
+
+/* ============================================= */
+/* PULSE ANIMATION FOR LOW STOCK BADGES         */
+/* ============================================= */
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Critical stock badge (red/orange) */
+.status-critical {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Warning stock badge (yellow/orange) - slower pulse */
+.status-warning {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Optional: Also pulse the critical low stock items in the dashboard */
+.low-stock-item.critical {
+  animation: pulse 2s ease-in-out infinite;
+}
+/* Optional: Pulse the shortage text on critical items */
+.low-stock-shortage.critical {
+  animation: pulse 1.5s ease-in-out infinite;
 }
