@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v20.1.3
+// INVENTORY MANAGER PRO v20.1.5
 // =============================================
 
 const supabaseClient = window.supabaseClient;
@@ -1742,25 +1742,31 @@ function logFromDetails() {
 function initMobileMenu() {
   const hamburger = document.getElementById('hamburgerMenu');
   const dropdown = document.getElementById('mobileDropdown');
-  if (hamburger)
+
+  if (hamburger && dropdown) {
+    // Toggle dropdown on hamburger click
     hamburger.addEventListener('click', (e) => {
       e.stopPropagation();
       dropdown.classList.toggle('show');
     });
-  document.addEventListener('click', (e) => {
-    if (
-      dropdown?.classList.contains('show') &&
-      !hamburger?.contains(e.target) &&
-      !dropdown.contains(e.target)
-    )
-      dropdown.classList.remove('show');
-  });
-  document.querySelectorAll('.mobile-tab-btn, .tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      switchToTab(btn.getAttribute('data-tab'));
-      if (dropdown) dropdown.classList.remove('show');
+
+    // Close dropdown when clicking a tab
+    document.querySelectorAll('.mobile-tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        dropdown.classList.remove('show');
+      });
     });
-  });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (
+        dropdown.classList.contains('show') &&
+        !hamburger.contains(e.target)
+      ) {
+        dropdown.classList.remove('show');
+      }
+    });
+  }
 }
 function initUsageQuantityControls() {
   const dec = document.getElementById('decrementUsageQty');

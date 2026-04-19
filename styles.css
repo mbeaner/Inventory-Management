@@ -1,5 +1,5 @@
 /* ============================================= */
-/* INVENTORY MANAGER PRO v20.1.3               */
+/* INVENTORY MANAGER PRO v20.1.5              */
 /* Main Stylesheet                              */
 /* ============================================= */
 
@@ -455,7 +455,7 @@ body.dark #darkModeToggle {
 }
 
 /* --------------------------------------------- */
-/* MOBILE NAVIGATION (Hamburger Menu)           */
+/* MOBILE NAVIGATION (Hamburger Menu)*/
 /* --------------------------------------------- */
 .mobile-nav {
   display: none;
@@ -475,7 +475,20 @@ body.dark #darkModeToggle {
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.hamburger-menu:active {
+  transform: scale(0.98);
+  background: var(--hover-bg);
+}
+
+.hamburger-menu i {
+  font-size: 1.1rem;
+  color: #2d6a4f;
 }
 
 .mobile-dropdown {
@@ -485,22 +498,23 @@ body.dark #darkModeToggle {
   right: 0;
   background: var(--dropdown-bg);
   border-radius: 20px;
-  margin-top: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  margin-top: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  z-index: 100;
+  z-index: 1000;
   display: none;
-  animation: slideDown 0.2s ease;
+  border: 1px solid var(--border-color);
+  animation: dropdownFadeIn 0.2s ease;
 }
 
 .mobile-dropdown.show {
   display: block;
 }
 
-@keyframes slideDown {
+@keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -516,9 +530,23 @@ body.dark #darkModeToggle {
   text-align: left;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-tab-btn:last-child {
+  border-bottom: none;
+}
+
+.mobile-tab-btn i {
+  width: 20px;
+  font-size: 1rem;
+  color: #2d6a4f;
 }
 
 .mobile-tab-btn:hover {
@@ -527,6 +555,27 @@ body.dark #darkModeToggle {
 
 .mobile-tab-btn.active {
   background: #2d6a4f;
+  color: white;
+}
+
+.mobile-tab-btn.active i {
+  color: white;
+}
+
+/* Dark mode adjustments */
+body.dark .mobile-dropdown {
+  border-color: #334155;
+}
+
+body.dark .hamburger-menu {
+  border-color: #334155;
+}
+
+body.dark .mobile-tab-btn i {
+  color: #6fcf97;
+}
+
+body.dark .mobile-tab-btn.active i {
   color: white;
 }
 
