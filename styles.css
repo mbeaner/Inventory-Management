@@ -1,5 +1,5 @@
 /* ============================================= */
-/* INVENTORY MANAGER PRO v19.0.0                */
+/* INVENTORY MANAGER PRO v19.2.0                */
 /* Main Stylesheet                              */
 /* ============================================= */
 
@@ -720,6 +720,7 @@ body.dark #darkModeToggle {
     padding-bottom: 0;
   }
 
+  /* Mobile Logs - stacked layout */
   .logs-column-headers {
     display: none;
   }
@@ -744,6 +745,63 @@ body.dark #darkModeToggle {
     padding-bottom: 8px;
     margin-bottom: 4px;
   }
+
+  /* ========== SIMPLIFIED MOBILE TABLE - FIT SCREEN ========== */
+  .table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  table {
+    width: 100%;
+    min-width: auto;
+    table-layout: fixed;
+  }
+
+  /* Set percentage widths for each column */
+  table th:nth-child(1),
+  table td:nth-child(1) {
+    width: 20%;
+  }
+
+  table th:nth-child(2),
+  table td:nth-child(2) {
+    width: 30%;
+  }
+
+  table th:nth-child(3),
+  table td:nth-child(3) {
+    width: 15%;
+  }
+
+  table th:nth-child(4),
+  table td:nth-child(4) {
+    width: 15%;
+  }
+
+  table th:nth-child(5),
+  table td:nth-child(5) {
+    width: 20%;
+  }
+
+  /* Allow text to wrap inside cells */
+  table td {
+    word-wrap: break-word;
+    white-space: normal;
+  }
+
+  /* Smaller font on mobile */
+  table,
+  th,
+  td {
+    font-size: 0.7rem;
+  }
+
+  /* Adjust status badge for mobile */
+  .status-badge {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+  }
 }
 
 @media (min-width: 769px) {
@@ -752,6 +810,11 @@ body.dark #darkModeToggle {
   }
   .bottom-action-bar {
     display: none !important;
+  }
+
+  /* Only set min-width on desktop */
+  table {
+    min-width: 500px;
   }
 }
 
@@ -1129,7 +1192,6 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
-  min-width: 500px;
 }
 
 th {
@@ -1420,6 +1482,7 @@ td {
   min-height: 48px;
   max-width: 200px;
 }
+
 /* Center buttons in Part Details and Log Details modals */
 .details-actions {
   display: flex;
@@ -1436,6 +1499,7 @@ td {
   padding: 12px 16px;
   max-width: 200px;
 }
+
 .form-group {
   margin-bottom: 18px;
 }
