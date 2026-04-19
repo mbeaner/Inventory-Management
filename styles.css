@@ -455,7 +455,7 @@ body.dark #darkModeToggle {
 }
 
 /* --------------------------------------------- */
-/* MOBILE NAVIGATION (Hamburger Menu)*/
+/* MOBILE NAVIGATION (Hamburger Menu) - v20.1.5 */
 /* --------------------------------------------- */
 .mobile-nav {
   display: none;
@@ -537,6 +537,7 @@ body.dark #darkModeToggle {
   display: flex;
   align-items: center;
   gap: 12px;
+  pointer-events: auto;
 }
 
 .mobile-tab-btn:last-child {
@@ -547,6 +548,11 @@ body.dark #darkModeToggle {
   width: 20px;
   font-size: 1rem;
   color: #2d6a4f;
+  pointer-events: none;
+}
+
+.mobile-tab-btn span {
+  pointer-events: none;
 }
 
 .mobile-tab-btn:hover {

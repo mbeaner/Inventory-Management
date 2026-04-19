@@ -1750,23 +1750,45 @@ function initMobileMenu() {
       dropdown.classList.toggle('show');
     });
 
-    // Close dropdown when clicking a tab
-    document.querySelectorAll('.mobile-tab-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        dropdown.classList.remove('show');
-      });
+    // Handle mobile tab clicks - use event delegation
+    dropdown.addEventListener('click', (e) => {
+      // Find the closest button element (in case click is on icon or span)
+      const btn = e.target.closest('.mobile-tab-btn');
+      if (btn) {
+        const tabId = btn.getAttribute('data-tab');
+        if (tabId) {
+          dropdown.classList.remove('show');
+          switchToTab(tabId);
+        }
+      }
     });
 
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (
         dropdown.classList.contains('show') &&
-        !hamburger.contains(e.target)
+        !hamburger.contains(e.target) &&
+        !dropdown.contains(e.target)
       ) {
         dropdown.classList.remove('show');
       }
     });
   }
+
+  // Handle desktop tab clicks - separate handler
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    // Remove any existing listeners to avoid duplicates
+    btn.removeEventListener('click', btn._listener);
+    // Add new listener
+    const listener = () => {
+      const tabId = btn.getAttribute('data-tab');
+      if (tabId) {
+        switchToTab(tabId);
+      }
+    };
+    btn.addEventListener('click', listener);
+    btn._listener = listener; // Store for potential removal
+  });
 }
 function initUsageQuantityControls() {
   const dec = document.getElementById('decrementUsageQty');
