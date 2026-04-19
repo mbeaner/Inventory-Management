@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v20.1.7
+// INVENTORY MANAGER PRO v20.1.8
 // =============================================
 
 const supabaseClient = window.supabaseClient;
