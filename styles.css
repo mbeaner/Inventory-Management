@@ -1,5 +1,5 @@
 /* ============================================= */
-/* INVENTORY MANAGER PRO v20.1.5              */
+/* INVENTORY MANAGER PRO v20.1.6             */
 /* Main Stylesheet                              */
 /* ============================================= */
 
@@ -584,7 +584,13 @@ body.dark .mobile-tab-btn i {
 body.dark .mobile-tab-btn.active i {
   color: white;
 }
+.tab-content {
+  display: none;
+}
 
+.tab-content.active {
+  display: block;
+}
 /* --------------------------------------------- */
 /* MOBILE BOTTOM ACTION BAR*/
 /* --------------------------------------------- */
