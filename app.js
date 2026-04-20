@@ -429,12 +429,10 @@ function showDashboardSkeleton() {
 
 //Check if user has an active session on page load
 async function checkSession() {
-  const loading = document.getElementById('loadingScreen');
   const auth = document.getElementById('authContainer');
   const app = document.getElementById('appContainer');
   if (auth) auth.style.display = 'none';
   if (app) app.style.display = 'none';
-  if (loading) loading.style.display = 'flex';
 
   const {
     data: { session },
@@ -444,11 +442,22 @@ async function checkSession() {
     currentUser = session.user;
     await checkAdminStatus();
     await updateUIByPermissions();
-    if (loading) loading.style.display = 'none';
     if (app) app.style.display = 'block';
+
+    // Show skeletons before loading data
+    showAllPartsSkeleton();
+    showNeedOrderSkeleton();
+    showCriticalSkeleton();
+    showLogsSkeleton();
+
+    // If dashboard is active, show dashboard skeleton
+    const dashboardTab = document.getElementById('tab-dashboard');
+    if (dashboardTab && dashboardTab.classList.contains('active')) {
+      showDashboardSkeleton();
+    }
+
     await loadAllData();
   } else {
-    if (loading) loading.style.display = 'none';
     if (auth) auth.style.display = 'flex';
   }
 }
@@ -457,8 +466,6 @@ async function checkSession() {
 async function login(email, password) {
   showAuthMessage('', '');
   setAuthLoading(true);
-  const loading = document.getElementById('loadingScreen');
-  if (loading) loading.style.display = 'flex';
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({
     email,
@@ -467,7 +474,6 @@ async function login(email, password) {
   setAuthLoading(false);
 
   if (error) {
-    if (loading) loading.style.display = 'none';
     showAuthMessage(error.message, 'error');
     return false;
   }
@@ -475,9 +481,21 @@ async function login(email, password) {
   currentUser = data.user;
   await checkAdminStatus();
   await updateUIByPermissions();
-  if (loading) loading.style.display = 'none';
   document.getElementById('authContainer').style.display = 'none';
   document.getElementById('appContainer').style.display = 'block';
+
+  // Show skeletons before loading data
+  showAllPartsSkeleton();
+  showNeedOrderSkeleton();
+  showCriticalSkeleton();
+  showLogsSkeleton();
+
+  // If dashboard is active, show dashboard skeleton
+  const dashboardTab = document.getElementById('tab-dashboard');
+  if (dashboardTab && dashboardTab.classList.contains('active')) {
+    showDashboardSkeleton();
+  }
+
   await loadAllData();
   return true;
 }
@@ -495,12 +513,9 @@ async function register(email, password, confirm) {
   }
 
   setAuthLoading(true);
-  const loading = document.getElementById('loadingScreen');
-  if (loading) loading.style.display = 'flex';
 
   const { error } = await supabaseClient.auth.signUp({ email, password });
   setAuthLoading(false);
-  if (loading) loading.style.display = 'none';
 
   if (error) {
     showAuthMessage(error.message, 'error');
@@ -513,8 +528,6 @@ async function register(email, password, confirm) {
 
 //Logout current user
 async function logout() {
-  const loading = document.getElementById('loadingScreen');
-  if (loading) loading.style.display = 'flex';
   const { error } = await supabaseClient.auth.signOut();
   if (error) {
     showToast(error.message, true);
@@ -526,7 +539,6 @@ async function logout() {
     document.getElementById('authContainer').style.display = 'flex';
     document.getElementById('appContainer').style.display = 'none';
   }
-  if (loading) loading.style.display = 'none';
 }
 
 //Display authentication message
