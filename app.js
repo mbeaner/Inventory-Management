@@ -102,7 +102,7 @@ function initPullToRefresh() {
       const pullDistance = e.touches[0].clientY - startY;
 
       // Increased from 15 to 100 - requires more pull to activate
-      if (pullDistance > 40 && window.scrollY === 0) {
+      if (pullDistance > 20 && window.scrollY === 0) {
         e.preventDefault();
         showSyncIndicator('');
       }
