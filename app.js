@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v21.1.0
+// INVENTORY MANAGER PRO v21.1.1
 // =============================================
 // A complete inventory management system with Supabase backend
 // Features: Authentication, CRUD operations, Dashboard, QR scanning,
@@ -216,6 +216,213 @@ const escapeHtml = (s) =>
       )
     : '';
 
+// =============================================
+// SKELETON LOADING STATES
+// =============================================
+
+/**
+ * Show skeleton loading for All Parts table
+ */
+function showAllPartsSkeleton() {
+  const tbody = document.getElementById('allPartsBody');
+  if (!tbody) return;
+
+  const rows = [];
+  const rowsToShow = Math.min(allState.rows, 25);
+
+  for (let i = 0; i < rowsToShow; i++) {
+    rows.push(`
+      <tr class="skeleton-row">
+        <td><div class="skeleton skeleton-cell" style="width: 80%"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 90%"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 50px"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 50px"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 70px"></div></td>
+      </tr>
+    `);
+  }
+
+  tbody.innerHTML = rows.join('');
+}
+
+/**
+ * Show skeleton loading for Need Order table
+ */
+function showNeedOrderSkeleton() {
+  const tbody = document.getElementById('needOrderBody');
+  if (!tbody) return;
+
+  const rows = [];
+  for (let i = 0; i < 5; i++) {
+    rows.push(`
+      <tr class="skeleton-row">
+        <td><div class="skeleton skeleton-cell" style="width: 80%"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 90%"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 50px"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 50px"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 60px"></div></td>
+      </tr>
+    `);
+  }
+
+  tbody.innerHTML = rows.join('');
+}
+
+/**
+ * Show skeleton loading for Critical table
+ */
+function showCriticalSkeleton() {
+  const tbody = document.getElementById('criticalBody');
+  if (!tbody) return;
+
+  const rows = [];
+  for (let i = 0; i < 5; i++) {
+    rows.push(`
+      <tr class="skeleton-row">
+        <td><div class="skeleton skeleton-cell" style="width: 80%"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 90%"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 50px"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 50px"></div></td>
+        <td><div class="skeleton skeleton-cell" style="width: 50px"></div></td>
+      </tr>
+    `);
+  }
+
+  tbody.innerHTML = rows.join('');
+}
+
+/**
+ * Show skeleton loading for Logs
+ */
+function showLogsSkeleton() {
+  const container = document.getElementById('logsListContainer');
+  if (!container) return;
+
+  const items = [];
+  for (let i = 0; i < 10; i++) {
+    items.push(`
+      <div class="skeleton-log-entry">
+        <div class="skeleton skeleton-log-cell"></div>
+        <div class="skeleton skeleton-log-cell"></div>
+        <div class="skeleton skeleton-log-cell" style="width: 60px"></div>
+        <div class="skeleton skeleton-log-cell"></div>
+        <div class="skeleton skeleton-log-cell"></div>
+      </div>
+    `);
+  }
+
+  container.innerHTML = items.join('');
+}
+
+/**
+ * Show skeleton loading for Dashboard
+ */
+function showDashboardSkeleton() {
+  // KPI cards skeleton - complete replacement
+  const kpiGrid = document.querySelector('.dashboard-kpi-grid');
+  if (kpiGrid) {
+    kpiGrid.innerHTML = `
+      <div class="kpi-card skeleton-card">
+        <div class="kpi-icon skeleton-icon"><div class="skeleton" style="width:55px;height:55px;border-radius:50%;"></div></div>
+        <div class="kpi-info">
+          <div class="skeleton" style="height:32px;width:60px;margin-bottom:8px;border-radius:6px;"></div>
+          <div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div>
+          <div class="skeleton" style="height:12px;width:100px;margin-top:8px;border-radius:4px;"></div>
+        </div>
+      </div>
+      <div class="kpi-card skeleton-card">
+        <div class="kpi-icon skeleton-icon"><div class="skeleton" style="width:55px;height:55px;border-radius:50%;"></div></div>
+        <div class="kpi-info">
+          <div class="skeleton" style="height:32px;width:60px;margin-bottom:8px;border-radius:6px;"></div>
+          <div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div>
+          <div class="skeleton" style="height:12px;width:100px;margin-top:8px;border-radius:4px;"></div>
+        </div>
+      </div>
+      <div class="kpi-card skeleton-card">
+        <div class="kpi-icon skeleton-icon"><div class="skeleton" style="width:55px;height:55px;border-radius:50%;"></div></div>
+        <div class="kpi-info">
+          <div class="skeleton" style="height:32px;width:60px;margin-bottom:8px;border-radius:6px;"></div>
+          <div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div>
+          <div class="skeleton" style="height:12px;width:100px;margin-top:8px;border-radius:4px;"></div>
+        </div>
+      </div>
+      <div class="kpi-card skeleton-card">
+        <div class="kpi-icon skeleton-icon"><div class="skeleton" style="width:55px;height:55px;border-radius:50%;"></div></div>
+        <div class="kpi-info">
+          <div class="skeleton" style="height:32px;width:60px;margin-bottom:8px;border-radius:6px;"></div>
+          <div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div>
+          <div class="skeleton" style="height:12px;width:100px;margin-top:8px;border-radius:4px;"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Chart skeleton - clear and show skeleton
+  const chartContainer = document.querySelector('.chart-container');
+  if (chartContainer) {
+    chartContainer.innerHTML =
+      '<div class="skeleton" style="height:250px;width:100%;border-radius:12px;"></div>';
+  }
+
+  // Top parts skeleton
+  const topPartsList = document.getElementById('topPartsList');
+  if (topPartsList) {
+    const items = [];
+    for (let i = 0; i < 5; i++) {
+      items.push(`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-color);">
+          <div class="skeleton" style="width:30px;height:20px;border-radius:4px;"></div>
+          <div style="flex:2">
+            <div class="skeleton" style="height:16px;width:120px;margin-bottom:6px;border-radius:4px;"></div>
+            <div class="skeleton" style="height:12px;width:180px;border-radius:4px;"></div>
+          </div>
+          <div class="skeleton" style="flex:3;height:8px;border-radius:4px;"></div>
+        </div>
+      `);
+    }
+    topPartsList.innerHTML = items.join('');
+  }
+
+  // Low stock skeleton
+  const lowStockList = document.getElementById('lowStockList');
+  if (lowStockList) {
+    const items = [];
+    for (let i = 0; i < 3; i++) {
+      items.push(`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--stat-card-bg);border-radius:12px;">
+          <div style="flex:1">
+            <div class="skeleton" style="height:16px;width:100px;margin-bottom:6px;border-radius:4px;"></div>
+            <div class="skeleton" style="height:12px;width:150px;border-radius:4px;"></div>
+          </div>
+          <div style="display:flex;gap:20px;">
+            <div class="skeleton" style="height:30px;width:50px;border-radius:20px;"></div>
+            <div class="skeleton" style="height:30px;width:50px;border-radius:20px;"></div>
+            <div class="skeleton" style="height:30px;width:60px;border-radius:20px;"></div>
+          </div>
+        </div>
+      `);
+    }
+    lowStockList.innerHTML = items.join('');
+  }
+
+  // Recent activity skeleton
+  const recentActivity = document.getElementById('recentActivityList');
+  if (recentActivity) {
+    const items = [];
+    for (let i = 0; i < 5; i++) {
+      items.push(`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-color);">
+          <div class="skeleton" style="width:32px;height:32px;border-radius:50%;"></div>
+          <div style="flex:1">
+            <div class="skeleton" style="height:14px;width:200px;margin-bottom:6px;border-radius:4px;"></div>
+            <div class="skeleton" style="height:12px;width:120px;border-radius:4px;"></div>
+          </div>
+        </div>
+      `);
+    }
+    recentActivity.innerHTML = items.join('');
+  }
+}
 // =============================================
 // AUTHENTICATION
 // =============================================
@@ -517,10 +724,22 @@ function updateBottomActionBarVisibility() {
 
 //Load all data from database (parts and usage logs)
 async function loadAllData() {
+  // Show skeletons immediately for all tabs
+  showAllPartsSkeleton();
+  showNeedOrderSkeleton();
+  showCriticalSkeleton();
+  showLogsSkeleton();
+
+  // If dashboard is active, show dashboard skeleton
+  const dashboardTab = document.getElementById('tab-dashboard');
+  if (dashboardTab && dashboardTab.classList.contains('active')) {
+    showDashboardSkeleton();
+  }
+
   await loadParts();
   await loadUsageLogs();
   refreshAll();
-  const dashboardTab = document.getElementById('tab-dashboard');
+
   if (dashboardTab && dashboardTab.classList.contains('active')) {
     await loadDashboardData();
   }
@@ -528,6 +747,11 @@ async function loadAllData() {
 
 //Load parts from Supabase
 async function loadParts() {
+  // Show skeleton immediately
+  showAllPartsSkeleton();
+  showNeedOrderSkeleton();
+  showCriticalSkeleton();
+
   showSyncIndicator('Loading parts...');
   const { data, error } = await supabaseClient
     .from('parts')
@@ -540,6 +764,9 @@ async function loadParts() {
 
 //Load usage logs from Supabase
 async function loadUsageLogs() {
+  // Show skeleton immediately
+  showLogsSkeleton();
+
   const { data, error } = await supabaseClient
     .from('usage_logs')
     .select('*')
@@ -645,13 +872,24 @@ async function deletePhoto(url) {
 
 //Load all dashboard components
 async function loadDashboardData() {
-  await Promise.all([
-    updateKPICards(),
-    updateUsageTrendsChart(),
-    updateTopUsedParts(),
-    updateLowStockAlerts(),
-    updateRecentActivity(),
-  ]);
+  // Clear existing chart to prevent "straight line" issue
+  if (usageChart) {
+    usageChart.destroy();
+    usageChart = null;
+  }
+
+  // Show skeleton immediately
+  showDashboardSkeleton();
+
+  // Small delay to ensure skeleton renders (200ms makes it visible)
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  // Now load real data
+  await updateKPICards();
+  await updateUsageTrendsChart();
+  await updateTopUsedParts();
+  await updateLowStockAlerts();
+  await updateRecentActivity();
 }
 
 //Update KPI cards with current statistics
@@ -669,17 +907,59 @@ async function updateKPICards() {
   const monthAgo = new Date();
   monthAgo.setMonth(monthAgo.getMonth() - 1);
   const added = parts.filter((p) => new Date(p.created_at) >= monthAgo).length;
-  document.getElementById('kpiTotalParts').innerText = total;
-  document.getElementById('kpiLowStock').innerText = low;
-  document.getElementById('kpiCritical').innerText = critical;
-  document.getElementById('kpiLogsCount').innerText = logsCount;
-  document.getElementById('kpiPartsTrend').innerHTML = added
-    ? `▲ +${added} this month`
-    : 'No new parts';
+
+  // Completely rebuild the KPI cards HTML
+  const kpiGrid = document.querySelector('.dashboard-kpi-grid');
+  if (kpiGrid) {
+    kpiGrid.innerHTML = `
+      <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-cubes"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiTotalParts">${total}</div>
+          <div class="kpi-label">Total Parts</div>
+          <div class="kpi-trend" id="kpiPartsTrend">${added ? `<i class="fas fa-arrow-up"></i> +${added} this month` : 'No new parts'}</div>
+        </div>
+      </div>
+      <div class="kpi-card warning">
+        <div class="kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiLowStock">${low}</div>
+          <div class="kpi-label">Low Stock</div>
+          <div class="kpi-trend">Below baseline</div>
+        </div>
+      </div>
+      <div class="kpi-card critical">
+        <div class="kpi-icon"><i class="fas fa-bell"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiCritical">${critical}</div>
+          <div class="kpi-label">Critical Stock</div>
+          <div class="kpi-trend">Below 50% of baseline</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-history"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiLogsCount">${logsCount}</div>
+          <div class="kpi-label">Logs (30 days)</div>
+          <div class="kpi-trend">Last 30 days</div>
+        </div>
+      </div>
+    `;
+  }
 }
 
 //Update usage trends chart (30 day history)
 async function updateUsageTrendsChart() {
+  // Make sure chart container has canvas
+  const chartContainer = document.querySelector('.chart-container');
+  if (chartContainer) {
+    // Clear container and add canvas
+    chartContainer.innerHTML = '<canvas id="usageTrendsChart"></canvas>';
+  }
+
+  const canvas = document.getElementById('usageTrendsChart');
+  if (!canvas) return;
+
   const days = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
@@ -700,33 +980,31 @@ async function updateUsageTrendsChart() {
       if (day) day.count += log.qty_used;
     }
   });
+
   if (usageChart) usageChart.destroy();
-  usageChart = new Chart(
-    document.getElementById('usageTrendsChart').getContext('2d'),
-    {
-      type: 'line',
-      data: {
-        labels: days.map((d) => d.date),
-        datasets: [
-          {
-            label: 'Parts Used',
-            data: days.map((d) => d.count),
-            borderColor: '#2d6a4f',
-            backgroundColor: 'rgba(45,106,79,0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.3,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-      },
+  usageChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: days.map((d) => d.date),
+      datasets: [
+        {
+          label: 'Parts Used',
+          data: days.map((d) => d.count),
+          borderColor: '#2d6a4f',
+          backgroundColor: 'rgba(45,106,79,0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+        },
+      ],
     },
-  );
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+    },
+  });
 }
 
 //Update top 5 most used parts (last 30 days)
@@ -1002,7 +1280,7 @@ function renderLogs() {
   if (!container) return;
   if (!filtered.length)
     container.innerHTML =
-      '<div style="padding:60px;text-align:center;color:#94a3b8;">No usage records</div>';
+      '<div class="empty-state" style="padding:60px;text-align:center;color:#94a3b8;"><i class="fas fa-history" style="font-size:3rem;margin-bottom:12px;display:block;opacity:0.5;"></i>No usage records found</div>';
   else
     container.innerHTML = filtered
       .map(
