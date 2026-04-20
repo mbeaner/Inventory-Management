@@ -101,7 +101,8 @@ function initPullToRefresh() {
 
       const pullDistance = e.touches[0].clientY - startY;
 
-      if (pullDistance > 15 && window.scrollY === 0) {
+      // Increased from 15 to 100 - requires more pull to activate
+      if (pullDistance > 100 && window.scrollY === 0) {
         e.preventDefault();
         showSyncIndicator('');
       }
@@ -123,7 +124,8 @@ function initPullToRefresh() {
 
     const pullDistance = e.changedTouches[0].clientY - startY;
 
-    if (pullDistance > 50 && window.scrollY === 0) {
+    // Increased from 50 to 100 - requires pulling down further to refresh
+    if (pullDistance > 100 && window.scrollY === 0) {
       isRefreshing = true;
       await silentRefresh();
       isRefreshing = false;
