@@ -81,7 +81,7 @@ function initPullToRefresh() {
     'touchstart',
     (e) => {
       // Don't trigger if a modal is open
-      if (window.isModalOpen) return;
+      // if (window.isModalOpen) return;
 
       if (window.scrollY === 0 && !isRefreshing) {
         startY = e.touches[0].clientY;
@@ -95,7 +95,7 @@ function initPullToRefresh() {
     'touchmove',
     (e) => {
       // Don't trigger if a modal is open
-      if (window.isModalOpen) return;
+      // if (window.isModalOpen) return;
 
       if (!pulling || isRefreshing) return;
 
@@ -111,10 +111,10 @@ function initPullToRefresh() {
 
   document.addEventListener('touchend', async (e) => {
     // Don't trigger if a modal is open
-    if (window.isModalOpen) {
-      pulling = false;
-      return;
-    }
+    // if (window.isModalOpen) {
+    //   pulling = false;
+    //   return;
+    // }
 
     if (!pulling || isRefreshing) {
       pulling = false;
