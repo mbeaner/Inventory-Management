@@ -135,6 +135,32 @@ function initPullToRefresh() {
   });
 }
 
+// HEADER CLICK REFRESH (Hidden)
+function initHeaderRefresh() {
+  const header = document.querySelector('.header h1');
+  if (header) {
+    let tapCount = 0;
+    let tapTimer = null;
+
+    header.addEventListener('click', () => {
+      tapCount++;
+
+      if (tapTimer) clearTimeout(tapTimer);
+
+      tapTimer = setTimeout(() => {
+        if (tapCount >= 2) {
+          // Double tap detected - refresh the app
+          showToast('Refreshing app...', false);
+          setTimeout(() => {
+            location.reload();
+          }, 200);
+        }
+        tapCount = 0;
+      }, 300);
+    });
+  }
+}
+
 //Silent refresh - performs a full page reload
 async function silentRefresh() {
   location.reload();
@@ -2499,6 +2525,7 @@ document.addEventListener('click', (e) => {
 initMobileMenu();
 initUsageQuantityControls();
 initPullToRefresh();
+initHeaderRefresh();
 window.changeAllPage = changeAllPage;
 window.showPartDetails = showPartDetails;
 window.showLogDetails = showLogDetails;
