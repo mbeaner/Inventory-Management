@@ -76,11 +76,15 @@ const DARK_MODE_KEY = 'inventoryManager_darkMode';
 function initPullToRefresh() {
   let startY = 0;
   let pulling = false;
+  let isStandalone = window.navigator.standalone === true;
+
+  // Detect if running as iOS web app
+  const isIOSWebApp =
+    isStandalone && /iPhone|iPad|iPod/.test(navigator.userAgent);
 
   document.addEventListener(
     'touchstart',
     (e) => {
-      // Don't trigger if a modal is open
       if (window.isModalOpen) return;
 
       if (window.scrollY === 0 && !isRefreshing) {
@@ -88,30 +92,33 @@ function initPullToRefresh() {
         pulling = true;
       }
     },
-    { passive: true },
+    { passive: false }, // Changed to false for iOS web app support
   );
 
   document.addEventListener(
     'touchmove',
     (e) => {
-      // Don't trigger if a modal is open
       if (window.isModalOpen) return;
 
       if (!pulling || isRefreshing) return;
 
       const pullDistance = e.touches[0].clientY - startY;
 
-      // Increased from 15 to 40 - requires more pull to activate
       if (pullDistance > 40 && window.scrollY === 0) {
         e.preventDefault();
-        showSyncIndicator('');
+
+        // For iOS web app, use a custom visual indicator
+        if (isIOSWebApp) {
+          showIOSWebAppPullIndicator(pullDistance);
+        } else {
+          showSyncIndicator('');
+        }
       }
     },
     { passive: false },
   );
 
   document.addEventListener('touchend', async (e) => {
-    // Don't trigger if a modal is open
     if (window.isModalOpen) {
       pulling = false;
       return;
@@ -124,9 +131,14 @@ function initPullToRefresh() {
 
     const pullDistance = e.changedTouches[0].clientY - startY;
 
-    // Increased from 50 to 100 - requires pulling down further to refresh
     if (pullDistance > 100 && window.scrollY === 0) {
       isRefreshing = true;
+
+      // Hide any indicators
+      hideSyncIndicator();
+      hideIOSWebAppIndicator();
+
+      // Perform refresh
       await silentRefresh();
       isRefreshing = false;
     }
@@ -134,7 +146,41 @@ function initPullToRefresh() {
     pulling = false;
     startY = 0;
     hideSyncIndicator();
+    hideIOSWebAppIndicator();
   });
+}
+
+// Custom indicator for iOS web app
+let iosIndicator = null;
+
+function showIOSWebAppIndicator(pullDistance) {
+  if (!iosIndicator) {
+    iosIndicator = document.createElement('div');
+    iosIndicator.className = 'ios-pull-indicator';
+    iosIndicator.innerHTML = '<i class="fas fa-arrow-down"></i>';
+    document.body.appendChild(iosIndicator);
+  }
+
+  // Change icon based on pull distance
+  if (pullDistance > 100) {
+    iosIndicator.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
+    iosIndicator.classList.add('ready');
+  } else {
+    iosIndicator.innerHTML = '<i class="fas fa-arrow-down"></i>';
+    iosIndicator.classList.remove('ready');
+  }
+
+  // Position based on pull distance
+  const translateY = Math.min(pullDistance, 120);
+  iosIndicator.style.transform = `translateX(-50%) translateY(${translateY}px)`;
+  iosIndicator.style.opacity = Math.min(pullDistance / 60, 1);
+}
+
+function hideIOSWebAppIndicator() {
+  if (iosIndicator) {
+    iosIndicator.remove();
+    iosIndicator = null;
+  }
 }
 
 //Silent refresh - performs a full page reload

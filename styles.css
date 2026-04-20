@@ -2779,3 +2779,42 @@ body.dark {
     width: 60%;
   }
 }
+
+/* ============================================= */
+/* iOS Web App Pull to Refresh Indicator        */
+/* ============================================= */
+
+.ios-pull-indicator {
+  position: fixed;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  padding: 12px 16px;
+  border-radius: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  transition:
+    transform 0.1s ease-out,
+    opacity 0.1s ease-out;
+  font-size: 1.2rem;
+  color: #2d6a4f;
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+}
+
+.ios-pull-indicator.ready {
+  background: #2d6a4f;
+  color: white;
+}
+
+/* Dark mode */
+body.dark .ios-pull-indicator {
+  background: var(--card-bg);
+  border-color: #334155;
+}
+
+body.dark .ios-pull-indicator.ready {
+  background: #2d6a4f;
+  color: white;
+}
