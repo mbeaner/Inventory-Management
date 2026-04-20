@@ -125,7 +125,7 @@ function initPullToRefresh() {
     const pullDistance = e.changedTouches[0].clientY - startY;
 
     // Increased from 50 to 100 - requires pulling down further to refresh
-    if (pullDistance > 100 && window.scrollY === 0) {
+    if (pullDistance > 50 && window.scrollY === 0) {
       isRefreshing = true;
       await silentRefresh();
       isRefreshing = false;
