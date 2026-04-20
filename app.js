@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v21.0.0
+// INVENTORY MANAGER PRO v21.1.0
 // =============================================
 // A complete inventory management system with Supabase backend
 // Features: Authentication, CRUD operations, Dashboard, QR scanning,
@@ -80,6 +80,9 @@ function initPullToRefresh() {
   document.addEventListener(
     'touchstart',
     (e) => {
+      // Don't trigger if a modal is open
+      if (window.isModalOpen) return;
+
       if (window.scrollY === 0 && !isRefreshing) {
         startY = e.touches[0].clientY;
         pulling = true;
@@ -91,6 +94,9 @@ function initPullToRefresh() {
   document.addEventListener(
     'touchmove',
     (e) => {
+      // Don't trigger if a modal is open
+      if (window.isModalOpen) return;
+
       if (!pulling || isRefreshing) return;
 
       const pullDistance = e.touches[0].clientY - startY;
@@ -104,6 +110,12 @@ function initPullToRefresh() {
   );
 
   document.addEventListener('touchend', async (e) => {
+    // Don't trigger if a modal is open
+    if (window.isModalOpen) {
+      pulling = false;
+      return;
+    }
+
     if (!pulling || isRefreshing) {
       pulling = false;
       return;
@@ -169,12 +181,13 @@ const hideModal = (id) => {
   const el = document.getElementById(id);
   if (el) {
     el.classList.remove('active');
-    // Wait for animation to finish before hiding (200ms matches CSS transition)
     setTimeout(() => {
       el.style.display = 'none';
       const openModals = document.querySelectorAll('.modal.active');
       if (openModals.length === 0) {
         enableBodyScroll();
+        // Clear flag when no modals are open
+        window.isModalOpen = false;
       }
     }, 200);
   }
@@ -186,9 +199,11 @@ const showModal = (id) => {
   if (el) {
     el.classList.remove('active');
     el.style.display = 'flex';
-    void el.offsetHeight; // Force reflow to ensure animation triggers
+    void el.offsetHeight;
     el.classList.add('active');
     disableBodyScroll();
+    // Set flag to disable pull-to-refresh
+    window.isModalOpen = true;
   }
 };
 
@@ -2202,3 +2217,5 @@ window.openUserPermissions = window.openUserPermissions;
 initDarkMode();
 checkSession();
 restoreActiveTab();
+// Initialize modal flag
+window.isModalOpen = false;
