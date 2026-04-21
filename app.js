@@ -468,21 +468,23 @@ async function checkSession() {
     currentUser = session.user;
     await checkAdminStatus();
     await updateUIByPermissions();
+
+    // Show app screen IMMEDIATELY with skeletons
     if (app) app.style.display = 'block';
 
-    // Show skeletons before loading data
+    // Show skeletons right away
     showAllPartsSkeleton();
     showNeedOrderSkeleton();
     showCriticalSkeleton();
     showLogsSkeleton();
 
-    // If dashboard is active, show dashboard skeleton
     const dashboardTab = document.getElementById('tab-dashboard');
     if (dashboardTab && dashboardTab.classList.contains('active')) {
       showDashboardSkeleton();
     }
 
-    await loadAllData();
+    // Load data in background
+    loadAllData();
   } else {
     if (auth) auth.style.display = 'flex';
   }
@@ -507,22 +509,25 @@ async function login(email, password) {
   currentUser = data.user;
   await checkAdminStatus();
   await updateUIByPermissions();
+
+  // Show app screen IMMEDIATELY with skeletons
   document.getElementById('authContainer').style.display = 'none';
   document.getElementById('appContainer').style.display = 'block';
 
-  // Show skeletons before loading data
+  // Show skeletons right away (no waiting for data)
   showAllPartsSkeleton();
   showNeedOrderSkeleton();
   showCriticalSkeleton();
   showLogsSkeleton();
 
-  // If dashboard is active, show dashboard skeleton
   const dashboardTab = document.getElementById('tab-dashboard');
   if (dashboardTab && dashboardTab.classList.contains('active')) {
     showDashboardSkeleton();
   }
 
-  await loadAllData();
+  // Load data in background (don't await - let it load async)
+  loadAllData();
+
   return true;
 }
 
@@ -631,7 +636,6 @@ function toggleDarkMode() {
   document.body.classList.toggle('dark', isDark);
   localStorage.setItem(DARK_MODE_KEY, isDark ? 'dark' : 'light');
   updateDarkModeButton(isDark);
-  showToast(`${isDark ? 'Dark' : 'Light'} mode activated`, false);
 }
 
 // =============================================
@@ -762,22 +766,12 @@ function updateBottomActionBarVisibility() {
 
 //Load all data from database (parts and usage logs)
 async function loadAllData() {
-  // Show skeletons immediately for all tabs
-  showAllPartsSkeleton();
-  showNeedOrderSkeleton();
-  showCriticalSkeleton();
-  showLogsSkeleton();
+  // Load parts and logs in parallel (faster than one after another)
+  await Promise.all([loadParts(), loadUsageLogs()]);
 
-  // If dashboard is active, show dashboard skeleton
-  const dashboardTab = document.getElementById('tab-dashboard');
-  if (dashboardTab && dashboardTab.classList.contains('active')) {
-    showDashboardSkeleton();
-  }
-
-  await loadParts();
-  await loadUsageLogs();
   refreshAll();
 
+  const dashboardTab = document.getElementById('tab-dashboard');
   if (dashboardTab && dashboardTab.classList.contains('active')) {
     await loadDashboardData();
   }
@@ -786,10 +780,6 @@ async function loadAllData() {
 //Load parts from Supabase
 async function loadParts() {
   // Show skeleton immediately
-  showAllPartsSkeleton();
-  showNeedOrderSkeleton();
-  showCriticalSkeleton();
-
   showSyncIndicator('Loading parts...');
   const { data, error } = await supabaseClient
     .from('parts')
@@ -802,9 +792,6 @@ async function loadParts() {
 
 //Load usage logs from Supabase
 async function loadUsageLogs() {
-  // Show skeleton immediately
-  showLogsSkeleton();
-
   const { data, error } = await supabaseClient
     .from('usage_logs')
     .select('*')
