@@ -242,6 +242,71 @@ const escapeHtml = (s) =>
       )
     : '';
 
+// Show a custom confirmation dialog instead of browser confirm
+function showCustomConfirm(title, message, onConfirm, onCancel) {
+  // Get or create a hidden modal container
+  let modal = document.getElementById('customConfirmModal');
+
+  if (!modal) {
+    // Create the modal if it doesn't exist
+    modal = document.createElement('div');
+    modal.id = 'customConfirmModal';
+    modal.className = 'modal';
+    modal.style.display = 'none';
+    modal.innerHTML = `
+      <div class="modal-card confirm-modal" style="max-width: 350px; text-align: center;">
+        <div class="warning-icon">
+          <i class="fas fa-qrcode"></i>
+        </div>
+        <h3 id="customConfirmTitle" style="margin-bottom: 12px;">Part Not Found</h3>
+        <p id="customConfirmMessage" style="margin-bottom: 20px;"></p>
+        <div class="confirm-actions" style="display: flex; gap: 12px; justify-content: center;">
+          <button id="customConfirmCancel" class="btn btn-secondary">Cancel</button>
+          <button id="customConfirmOk" class="btn btn-primary">Create Part</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Set the title and message
+  document.getElementById('customConfirmTitle').innerHTML =
+    `<i class="fas fa-qrcode"></i> ${escapeHtml(title)}`;
+  document.getElementById('customConfirmMessage').innerHTML =
+    escapeHtml(message);
+
+  // Store callbacks
+  const confirmHandler = () => {
+    hideModal('customConfirmModal');
+    if (onConfirm) onConfirm();
+    cleanup();
+  };
+
+  const cancelHandler = () => {
+    hideModal('customConfirmModal');
+    if (onCancel) onCancel();
+    cleanup();
+  };
+
+  const cleanup = () => {
+    const okBtn = document.getElementById('customConfirmOk');
+    const cancelBtn = document.getElementById('customConfirmCancel');
+    okBtn.removeEventListener('click', confirmHandler);
+    cancelBtn.removeEventListener('click', cancelHandler);
+  };
+
+  // Add event listeners
+  const okBtn = document.getElementById('customConfirmOk');
+  const cancelBtn = document.getElementById('customConfirmCancel');
+  okBtn.removeEventListener('click', confirmHandler);
+  cancelBtn.removeEventListener('click', cancelHandler);
+  okBtn.addEventListener('click', confirmHandler);
+  cancelBtn.addEventListener('click', cancelHandler);
+
+  // Show the modal
+  showModal('customConfirmModal');
+}
+
 // =============================================
 // SKELETON LOADING STATES
 // =============================================
@@ -1691,13 +1756,26 @@ async function onQrCodeSuccess(text) {
   if (found) {
     showToast(`✓ Found: ${found.part_number}`);
     showPartDetails(found.id);
-  } else if (confirm(`Part "${text}" not found. Create new?`)) {
-    document.getElementById('newPartNumber').value = text;
-    document.getElementById('newDescription').value = '';
-    document.getElementById('newLocation').value = '';
-    document.getElementById('newQuantity').value = 0;
-    showModal('addPartModal');
-  } else showToast('Part not found', true);
+  } else {
+    // Replace browser confirm with custom modal
+    showCustomConfirm(
+      'Part Not Found',
+      `Part "${text}" was not found in inventory. Would you like to create it?`,
+      () => {
+        // On confirm - open add part modal with pre-filled part number
+        document.getElementById('newPartNumber').value = text;
+        document.getElementById('newDescription').value = '';
+        document.getElementById('newLocation').value = '';
+        document.getElementById('newQuantity').value = 0;
+        showModal('addPartModal');
+        showToast('Fill in the details and click Add', false);
+      },
+      () => {
+        // On cancel - just show toast
+        showToast('Part not added', false);
+      },
+    );
+  }
 }
 
 //Manual part lookup by part number
@@ -1714,13 +1792,24 @@ function manualQrLookup() {
   if (found) {
     showToast(`✓ Found: ${found.part_number}`);
     showPartDetails(found.id);
-  } else if (confirm(`Part "${val}" not found. Create new?`)) {
-    document.getElementById('newPartNumber').value = val;
-    document.getElementById('newDescription').value = '';
-    document.getElementById('newLocation').value = '';
-    document.getElementById('newQuantity').value = 0;
-    showModal('addPartModal');
-  } else showToast('Part not found', true);
+  } else {
+    // Replace browser confirm with custom modal
+    showCustomConfirm(
+      'Part Not Found',
+      `Part "${val}" was not found in inventory. Would you like to create it?`,
+      () => {
+        document.getElementById('newPartNumber').value = val;
+        document.getElementById('newDescription').value = '';
+        document.getElementById('newLocation').value = '';
+        document.getElementById('newQuantity').value = 0;
+        showModal('addPartModal');
+        showToast('Fill in the details and click Add', false);
+      },
+      () => {
+        showToast('Part not added', false);
+      },
+    );
+  }
 }
 
 //Close QR scanner and modal
