@@ -448,6 +448,7 @@ function showDashboardSkeleton() {
     }
     recentActivity.innerHTML = items.join('');
   }
+  attachKpiCardClickHandlers();
 }
 // =============================================
 // AUTHENTICATION
@@ -918,6 +919,7 @@ async function loadDashboardData() {
 }
 
 //Update KPI cards with current statistics
+//Update KPI cards with current statistics
 async function updateKPICards() {
   const total = parts.length;
   const low = parts.filter((p) => p.current_qty < p.baseline_qty).length;
@@ -970,6 +972,48 @@ async function updateKPICards() {
         </div>
       </div>
     `;
+  }
+
+  // ATTACH CLICK HANDLERS AFTER CARDS ARE CREATED
+  attachKpiCardClickHandlers();
+}
+
+// Separate function to attach click handlers to KPI cards
+function attachKpiCardClickHandlers() {
+  // Total Parts card - opens All Parts tab
+  const totalPartsCard = document.querySelector('.kpi-card:first-child');
+  if (totalPartsCard) {
+    totalPartsCard.style.cursor = 'pointer';
+    totalPartsCard.onclick = () => {
+      switchToTab('all');
+    };
+  }
+
+  // Low Stock card - opens Need Order tab
+  const lowStockCard = document.querySelector('.kpi-card.warning');
+  if (lowStockCard) {
+    lowStockCard.style.cursor = 'pointer';
+    lowStockCard.onclick = () => {
+      switchToTab('needorder');
+    };
+  }
+
+  // Critical Stock card - opens Critical tab
+  const criticalCard = document.querySelector('.kpi-card.critical');
+  if (criticalCard) {
+    criticalCard.style.cursor = 'pointer';
+    criticalCard.onclick = () => {
+      switchToTab('critical');
+    };
+  }
+
+  // Logs card - opens Usage Logs tab
+  const logsCard = document.querySelector('.kpi-card:last-child');
+  if (logsCard) {
+    logsCard.style.cursor = 'pointer';
+    logsCard.onclick = () => {
+      switchToTab('logs');
+    };
   }
 }
 
