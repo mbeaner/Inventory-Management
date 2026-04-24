@@ -2893,3 +2893,39 @@ body.dark {
     transform: scale(1);
   }
 }
+/* ============================================= */
+/* PREVENT IOS ZOOM ON INPUT FOCUS              */
+/* ============================================= */
+
+/* Set all inputs to at least 16px to prevent iOS auto-zoom */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .search-box input,
+  .usage-search-input,
+  .form-group input,
+  .form-group textarea,
+  .qr-manual-input input,
+  .admin-search input,
+  #partSearchInput,
+  #usageQty,
+  #loginEmail,
+  #loginPassword,
+  #registerEmail,
+  #registerPassword,
+  #registerConfirmPassword,
+  #editPartNumber,
+  #editDescription,
+  #editLocation,
+  #editBaselineQty,
+  #newPartNumber,
+  #newDescription,
+  #newLocation,
+  #newQuantity,
+  #editLogQty,
+  #editLogNote,
+  #manualQrInput {
+    font-size: 16px !important;
+  }
+}
