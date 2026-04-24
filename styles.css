@@ -2929,3 +2929,75 @@ body.dark {
     font-size: 16px !important;
   }
 }
+
+/* ============================================= */
+/* CLICKABLE PHOTO - FULLSCREEN VIEW            */
+/* ============================================= */
+
+.clickable-photo {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.clickable-photo:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+.clickable-photo:active {
+  transform: scale(0.98);
+}
+
+/* Fullscreen image modal */
+.fullscreen-image-modal {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  backdrop-filter: blur(5px);
+}
+
+.fullscreen-image-modal img {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: fadeInScale 0.2s ease;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Fullscreen image modal with pure blur (no black) */
+.fullscreen-image-modal {
+  animation: fadeInBlur 0.25s ease;
+  background-color: transparent !important;
+}
+
+.fullscreen-image-modal img {
+  animation: imageZoomIn 0.25s ease;
+}
+
+@keyframes fadeInBlur {
+  from {
+    backdrop-filter: blur(0px);
+  }
+  to {
+    backdrop-filter: blur(20px);
+  }
+}
+
+@keyframes imageZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

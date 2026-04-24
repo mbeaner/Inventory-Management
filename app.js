@@ -233,6 +233,104 @@ const showModal = (id) => {
   }
 };
 
+// Show fullscreen image viewer
+function showFullscreenImage(imageUrl) {
+  // Create modal container
+  const modal = document.createElement('div');
+  modal.className = 'modal fullscreen-image-modal';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  modal.style.backgroundColor = 'transparent';
+  modal.style.backdropFilter = 'blur(20px)';
+  modal.style.WebkitBackdropFilter = 'blur(20px)';
+  modal.style.zIndex = '10001';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+
+  // Create image element
+  const img = document.createElement('img');
+  img.src = imageUrl;
+  img.style.maxWidth = '90%';
+  img.style.maxHeight = '90%';
+  img.style.objectFit = 'contain';
+  img.style.borderRadius = '16px';
+  img.style.cursor = 'zoom-out';
+  img.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.2)';
+
+  // Add close button
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+  closeBtn.style.position = 'absolute';
+  closeBtn.style.top = '20px';
+  closeBtn.style.right = '20px';
+  closeBtn.style.width = '44px';
+  closeBtn.style.height = '44px';
+  closeBtn.style.borderRadius = '40px';
+  closeBtn.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+  closeBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+  closeBtn.style.backdropFilter = 'blur(10px)';
+  closeBtn.style.color = 'white';
+  closeBtn.style.fontSize = '1.2rem';
+  closeBtn.style.cursor = 'pointer';
+  closeBtn.style.zIndex = '10002';
+  closeBtn.style.transition = 'all 0.2s ease';
+
+  closeBtn.onmouseover = () => {
+    closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+    closeBtn.style.transform = 'scale(1.05)';
+  };
+  closeBtn.onmouseout = () => {
+    closeBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+    closeBtn.style.transform = 'scale(1)';
+  };
+
+  // Function to close modal
+  function closeModal() {
+    modal.remove();
+    enableBodyScroll();
+    document.removeEventListener('keydown', escHandler);
+  }
+
+  // Close on X button click
+  closeBtn.onclick = (e) => {
+    e.stopPropagation();
+    closeModal();
+  };
+
+  // Close on image click
+  img.onclick = (e) => {
+    e.stopPropagation();
+    closeModal();
+  };
+
+  // Close on backdrop click
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  };
+
+  // Close on ESC key
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+
+  // Add to body
+  modal.appendChild(img);
+  modal.appendChild(closeBtn);
+  document.body.appendChild(modal);
+
+  // Disable body scroll
+  disableBodyScroll();
+}
+
 //Escape HTML to prevent XSS attacks
 const escapeHtml = (s) =>
   s
@@ -1447,7 +1545,7 @@ function showPartDetails(id) {
   `;
   const photoDiv = document.getElementById('photoDisplay');
   if (p.photo_url)
-    photoDiv.innerHTML = `<img src="${p.photo_url}" class="part-photo" alt="Part photo">`;
+    photoDiv.innerHTML = `<img src="${p.photo_url}" class="part-photo clickable-photo" alt="Part photo" onclick="showFullscreenImage('${p.photo_url}')">`;
   else
     photoDiv.innerHTML =
       '<div class="part-photo-placeholder"><i class="fas fa-camera fa-2x"></i><span>No photo</span></div>';
@@ -2651,6 +2749,7 @@ window.showPartDetails = showPartDetails;
 window.showLogDetails = showLogDetails;
 window.switchToTab = switchToTab;
 window.openUserPermissions = window.openUserPermissions;
+window.showFullscreenImage = showFullscreenImage;
 initDarkMode();
 checkSession();
 restoreActiveTab();
