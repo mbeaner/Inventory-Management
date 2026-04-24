@@ -1,5 +1,5 @@
 // =============================================
-// INVENTORY MANAGER PRO v21.1.1
+// INVENTORY MANAGER PRO v22.0.0
 // =============================================
 // A complete inventory management system with Supabase backend
 // Features: Authentication, CRUD operations, Dashboard, QR scanning,
