@@ -1,9 +1,9 @@
 // =============================================
-// INVENTORY MANAGER PRO v22.0.0
+// INVENTORY MANAGER PRO v22.0.1
 // =============================================
 // A complete inventory management system with Supabase backend
 // Features: Authentication, CRUD operations, Dashboard, QR scanning,
-//           Dark mode, Pull-to-refresh, Mobile responsive, Admin panel
+//           Dark mode, Mobile responsive, Admin panel
 
 const supabaseClient = window.supabaseClient;
 
@@ -39,9 +39,6 @@ let pendingDeletePartId = null,
 // UI state
 let reopenEditAfterPhoto = false;
 let scrollPosition = 0;
-let pullToRefreshActive = false;
-let touchStartY = 0;
-let isRefreshing = false;
 
 // Tab UI state
 let allState = { page: 1, rows: 50, search: '' };
@@ -65,105 +62,25 @@ let windowCurrentPermissions = {
 const STORAGE_KEY = 'inventoryManager_activeTab';
 const DARK_MODE_KEY = 'inventoryManager_darkMode';
 
+// Modal state (moved to top for proper initialization)
+window.isModalOpen = false;
+
+// Header refresh handler storage (for cleanup)
+let headerClickHandler = null;
+let headerTapTimer = null;
+let headerTapCount = 0;
+
 // =============================================
 // HELPER FUNCTIONS
 // =============================================
 
-/**
- * Pull to refresh functionality for mobile devices
- * Performs a full page reload when user pulls down from top
- */
-function initPullToRefresh() {
-  let startY = 0;
-  let pulling = false;
-
-  document.addEventListener(
-    'touchstart',
-    (e) => {
-      // Don't trigger if a modal is open
-      if (window.isModalOpen) return;
-
-      if (window.scrollY === 0 && !isRefreshing) {
-        startY = e.touches[0].clientY;
-        pulling = true;
-      }
-    },
-    { passive: true },
-  );
-
-  document.addEventListener(
-    'touchmove',
-    (e) => {
-      // Don't trigger if a modal is open
-      if (window.isModalOpen) return;
-
-      if (!pulling || isRefreshing) return;
-
-      const pullDistance = e.touches[0].clientY - startY;
-
-      if (pullDistance > 40 && window.scrollY === 0) {
-        e.preventDefault();
-        showSyncIndicator('');
-      }
-    },
-    { passive: false },
-  );
-
-  document.addEventListener('touchend', async (e) => {
-    // Don't trigger if a modal is open
-    if (window.isModalOpen) {
-      pulling = false;
-      return;
-    }
-
-    if (!pulling || isRefreshing) {
-      pulling = false;
-      return;
-    }
-
-    const pullDistance = e.changedTouches[0].clientY - startY;
-
-    if (pullDistance > 50 && window.scrollY === 0) {
-      isRefreshing = true;
-      await silentRefresh();
-      isRefreshing = false;
-    }
-
-    pulling = false;
-    startY = 0;
-    hideSyncIndicator();
-  });
-}
-
-// HEADER CLICK REFRESH (Hidden)
-function initHeaderRefresh() {
-  const header = document.querySelector('.header h1');
-  if (header) {
-    let tapCount = 0;
-    let tapTimer = null;
-
-    header.addEventListener('click', () => {
-      tapCount++;
-
-      if (tapTimer) clearTimeout(tapTimer);
-
-      tapTimer = setTimeout(() => {
-        if (tapCount >= 2) {
-          // Double tap detected - refresh the app
-          showToast('Refreshing app...', false);
-          setTimeout(() => {
-            location.reload();
-          }, 200);
-        }
-        tapCount = 0;
-      }, 300);
-    });
-  }
-}
-
-//Silent refresh - performs a full page reload
-async function silentRefresh() {
-  location.reload();
+// Debounce helper to prevent excessive re-renders
+function debounce(func, delay = 300) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
 }
 
 //Display a toast notification
@@ -342,11 +259,9 @@ const escapeHtml = (s) =>
 
 // Show a custom confirmation dialog instead of browser confirm
 function showCustomConfirm(title, message, onConfirm, onCancel) {
-  // Get or create a hidden modal container
   let modal = document.getElementById('customConfirmModal');
 
   if (!modal) {
-    // Create the modal if it doesn't exist
     modal = document.createElement('div');
     modal.id = 'customConfirmModal';
     modal.className = 'modal';
@@ -367,13 +282,11 @@ function showCustomConfirm(title, message, onConfirm, onCancel) {
     document.body.appendChild(modal);
   }
 
-  // Set the title and message
   document.getElementById('customConfirmTitle').innerHTML =
     `<i class="fas fa-qrcode"></i> ${escapeHtml(title)}`;
   document.getElementById('customConfirmMessage').innerHTML =
     escapeHtml(message);
 
-  // Store callbacks
   const confirmHandler = () => {
     hideModal('customConfirmModal');
     if (onConfirm) onConfirm();
@@ -393,7 +306,6 @@ function showCustomConfirm(title, message, onConfirm, onCancel) {
     cancelBtn.removeEventListener('click', cancelHandler);
   };
 
-  // Add event listeners
   const okBtn = document.getElementById('customConfirmOk');
   const cancelBtn = document.getElementById('customConfirmCancel');
   okBtn.removeEventListener('click', confirmHandler);
@@ -401,17 +313,70 @@ function showCustomConfirm(title, message, onConfirm, onCancel) {
   okBtn.addEventListener('click', confirmHandler);
   cancelBtn.addEventListener('click', cancelHandler);
 
-  // Show the modal
   showModal('customConfirmModal');
+}
+
+// =============================================
+// HEADER DOUBLE-TAP REFRESH (Memory leak fixed)
+// =============================================
+
+function initHeaderRefresh() {
+  // Remove existing listener first to prevent duplicates
+  destroyHeaderRefresh();
+
+  const header = document.querySelector('.header h1');
+  if (!header) return;
+
+  // Create named handler function
+  headerClickHandler = () => {
+    headerTapCount++;
+
+    if (headerTapTimer) clearTimeout(headerTapTimer);
+
+    headerTapTimer = setTimeout(() => {
+      if (headerTapCount >= 2) {
+        // Double tap detected - refresh the app
+        showToast('🔄 Refreshing app...', false);
+
+        // Optional haptic feedback on mobile
+        if (window.navigator && window.navigator.vibrate) {
+          window.navigator.vibrate(50);
+        }
+
+        setTimeout(() => {
+          location.reload();
+        }, 200);
+      }
+      headerTapCount = 0;
+    }, 300);
+  };
+
+  header.addEventListener('click', headerClickHandler);
+}
+
+// Cleanup function for header refresh
+function destroyHeaderRefresh() {
+  const header = document.querySelector('.header h1');
+  if (header && headerClickHandler) {
+    header.removeEventListener('click', headerClickHandler);
+    headerClickHandler = null;
+  }
+  if (headerTapTimer) {
+    clearTimeout(headerTapTimer);
+    headerTapTimer = null;
+  }
+  headerTapCount = 0;
+}
+
+// Silent refresh - performs a full page reload
+async function silentRefresh() {
+  location.reload();
 }
 
 // =============================================
 // SKELETON LOADING STATES
 // =============================================
 
-/**
- * Show skeleton loading for All Parts table
- */
 function showAllPartsSkeleton() {
   const tbody = document.getElementById('allPartsBody');
   if (!tbody) return;
@@ -434,9 +399,6 @@ function showAllPartsSkeleton() {
   tbody.innerHTML = rows.join('');
 }
 
-/**
- * Show skeleton loading for Need Order table
- */
 function showNeedOrderSkeleton() {
   const tbody = document.getElementById('needOrderBody');
   if (!tbody) return;
@@ -457,9 +419,6 @@ function showNeedOrderSkeleton() {
   tbody.innerHTML = rows.join('');
 }
 
-/**
- * Show skeleton loading for Critical table
- */
 function showCriticalSkeleton() {
   const tbody = document.getElementById('criticalBody');
   if (!tbody) return;
@@ -480,9 +439,6 @@ function showCriticalSkeleton() {
   tbody.innerHTML = rows.join('');
 }
 
-/**
- * Show skeleton loading for Logs
- */
 function showLogsSkeleton() {
   const container = document.getElementById('logsListContainer');
   if (!container) return;
@@ -503,11 +459,7 @@ function showLogsSkeleton() {
   container.innerHTML = items.join('');
 }
 
-/**
- * Show skeleton loading for Dashboard
- */
 function showDashboardSkeleton() {
-  // KPI cards skeleton - complete replacement
   const kpiGrid = document.querySelector('.dashboard-kpi-grid');
   if (kpiGrid) {
     kpiGrid.innerHTML = `
@@ -546,14 +498,12 @@ function showDashboardSkeleton() {
     `;
   }
 
-  // Chart skeleton - clear and show skeleton
   const chartContainer = document.querySelector('.chart-container');
   if (chartContainer) {
     chartContainer.innerHTML =
       '<div class="skeleton" style="height:250px;width:100%;border-radius:12px;"></div>';
   }
 
-  // Top parts skeleton
   const topPartsList = document.getElementById('topPartsList');
   if (topPartsList) {
     const items = [];
@@ -572,7 +522,6 @@ function showDashboardSkeleton() {
     topPartsList.innerHTML = items.join('');
   }
 
-  // Low stock skeleton
   const lowStockList = document.getElementById('lowStockList');
   if (lowStockList) {
     const items = [];
@@ -594,7 +543,6 @@ function showDashboardSkeleton() {
     lowStockList.innerHTML = items.join('');
   }
 
-  // Recent activity skeleton
   const recentActivity = document.getElementById('recentActivityList');
   if (recentActivity) {
     const items = [];
@@ -613,11 +561,11 @@ function showDashboardSkeleton() {
   }
   attachKpiCardClickHandlers();
 }
+
 // =============================================
 // AUTHENTICATION
 // =============================================
 
-//Check if user has an active session on page load
 async function checkSession() {
   const auth = document.getElementById('authContainer');
   const app = document.getElementById('appContainer');
@@ -633,10 +581,8 @@ async function checkSession() {
     await checkAdminStatus();
     await updateUIByPermissions();
 
-    // Show app screen IMMEDIATELY with skeletons
     if (app) app.style.display = 'block';
 
-    // Show skeletons right away
     showAllPartsSkeleton();
     showNeedOrderSkeleton();
     showCriticalSkeleton();
@@ -647,14 +593,12 @@ async function checkSession() {
       showDashboardSkeleton();
     }
 
-    // Load data in background
     loadAllData();
   } else {
     if (auth) auth.style.display = 'flex';
   }
 }
 
-//Login user with email and password
 async function login(email, password) {
   showAuthMessage('', '');
   setAuthLoading(true);
@@ -674,11 +618,9 @@ async function login(email, password) {
   await checkAdminStatus();
   await updateUIByPermissions();
 
-  // Show app screen IMMEDIATELY with skeletons
   document.getElementById('authContainer').style.display = 'none';
   document.getElementById('appContainer').style.display = 'block';
 
-  // Show skeletons right away (no waiting for data)
   showAllPartsSkeleton();
   showNeedOrderSkeleton();
   showCriticalSkeleton();
@@ -689,13 +631,11 @@ async function login(email, password) {
     showDashboardSkeleton();
   }
 
-  // Load data in background (don't await - let it load async)
   loadAllData();
 
   return true;
 }
 
-//Register a new user account
 async function register(email, password, confirm) {
   showAuthMessage('', '');
   if (password !== confirm) {
@@ -721,8 +661,10 @@ async function register(email, password, confirm) {
   return true;
 }
 
-//Logout current user
 async function logout() {
+  // Clean up header refresh listener
+  destroyHeaderRefresh();
+
   const { error } = await supabaseClient.auth.signOut();
   if (error) {
     showToast(error.message, true);
@@ -733,10 +675,14 @@ async function logout() {
     usageLogs = [];
     document.getElementById('authContainer').style.display = 'flex';
     document.getElementById('appContainer').style.display = 'none';
+
+    // Re-initialize for next login
+    setTimeout(() => {
+      initHeaderRefresh();
+    }, 100);
   }
 }
 
-//Display authentication message
 function showAuthMessage(msg, type) {
   const div = document.getElementById('authMessage');
   div.textContent = msg;
@@ -744,7 +690,6 @@ function showAuthMessage(msg, type) {
   div.style.display = msg ? 'block' : 'none';
 }
 
-//Set loading state on auth buttons
 function setAuthLoading(loading) {
   const loginBtn = document.getElementById('loginBtn');
   const registerBtn = document.getElementById('registerBtn');
@@ -757,7 +702,6 @@ function setAuthLoading(loading) {
   }
 }
 
-//Switch to login form view
 function switchToLogin() {
   document.getElementById('loginForm').classList.add('active');
   document.getElementById('registerForm').classList.remove('active');
@@ -766,7 +710,6 @@ function switchToLogin() {
   showAuthMessage('', '');
 }
 
-//Switch to register form view
 function switchToRegister() {
   document.getElementById('registerForm').classList.add('active');
   document.getElementById('loginForm').classList.remove('active');
@@ -820,7 +763,6 @@ function restoreActiveTab() {
   );
 }
 
-//Activate a specific tab by ID
 function activateTab(tabId) {
   document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
@@ -841,7 +783,6 @@ function switchToTab(tabId) {
 // PERMISSIONS
 // =============================================
 
-//Check current user's admin status and permissions
 async function checkAdminStatus() {
   if (!currentUser) return false;
   const { data, error } = await supabaseClient
@@ -864,7 +805,6 @@ async function checkAdminStatus() {
   return isAdmin;
 }
 
-//Check if user has a specific permission
 async function userHasPermission(perm) {
   if (!currentUser || isAdmin) return isAdmin;
   const { data, error } = await supabaseClient
@@ -875,7 +815,6 @@ async function userHasPermission(perm) {
   return !error && data?.[perm];
 }
 
-//Update UI elements based on user permissions
 async function updateUIByPermissions() {
   if (!currentUser) return;
   const canAddParts = await userHasPermission('can_add_parts');
@@ -897,7 +836,6 @@ async function updateUIByPermissions() {
   updateBottomActionBarVisibility();
 }
 
-//Show/hide mobile bottom action bar buttons based on permissions
 function updateBottomActionBarVisibility() {
   const btns = {
     add: document.getElementById('mobileAddPartBtn'),
@@ -928,22 +866,22 @@ function updateBottomActionBarVisibility() {
 // DATABASE CRUD OPERATIONS
 // =============================================
 
-//Load all data from database (parts and usage logs)
 async function loadAllData() {
-  // Load parts and logs in parallel (faster than one after another)
-  await Promise.all([loadParts(), loadUsageLogs()]);
+  try {
+    await Promise.all([loadParts(), loadUsageLogs()]);
+    refreshAll();
 
-  refreshAll();
-
-  const dashboardTab = document.getElementById('tab-dashboard');
-  if (dashboardTab && dashboardTab.classList.contains('active')) {
-    await loadDashboardData();
+    const dashboardTab = document.getElementById('tab-dashboard');
+    if (dashboardTab && dashboardTab.classList.contains('active')) {
+      await loadDashboardData();
+    }
+  } catch (error) {
+    showToast('Failed to load data. Check your connection.', true);
+    console.error(error);
   }
 }
 
-//Load parts from Supabase
 async function loadParts() {
-  // Show skeleton immediately
   showSyncIndicator('Loading parts...');
   const { data, error } = await supabaseClient
     .from('parts')
@@ -954,7 +892,6 @@ async function loadParts() {
   else parts = data || [];
 }
 
-//Load usage logs from Supabase
 async function loadUsageLogs() {
   const { data, error } = await supabaseClient
     .from('usage_logs')
@@ -964,22 +901,18 @@ async function loadUsageLogs() {
   else usageLogs = data || [];
 }
 
-//Save a part to database
 async function savePart(part) {
   return await saveToTable('parts', part);
 }
 
-//Update an existing part
 async function updatePart(id, updates) {
   return await updateInTable('parts', id, updates);
 }
 
-//Delete a part from database
 async function deletePart(id) {
   return await deleteFromTable('parts', id);
 }
 
-//Save a usage log entry
 async function saveUsageLog(log) {
   return await saveToTable('usage_logs', {
     ...log,
@@ -987,17 +920,14 @@ async function saveUsageLog(log) {
   });
 }
 
-//Update an existing usage log
 async function updateUsageLog(id, updates) {
   return await updateInTable('usage_logs', id, updates);
 }
 
-//Delete a usage log
 async function deleteUsageLog(id) {
   return await deleteFromTable('usage_logs', id);
 }
 
-//Generic save to table function
 async function saveToTable(table, data) {
   showSyncIndicator('Saving...');
   const { data: result, error } = await supabaseClient
@@ -1009,7 +939,6 @@ async function saveToTable(table, data) {
   return result?.[0];
 }
 
-//Generic update in table function
 async function updateInTable(table, id, updates) {
   showSyncIndicator('Updating...');
   const { data, error } = await supabaseClient
@@ -1022,7 +951,6 @@ async function updateInTable(table, id, updates) {
   return data?.[0];
 }
 
-//Generic delete from table function
 async function deleteFromTable(table, id) {
   showSyncIndicator('Deleting...');
   const { error } = await supabaseClient.from(table).delete().eq('id', id);
@@ -1031,7 +959,6 @@ async function deleteFromTable(table, id) {
   return !error;
 }
 
-//Upload a photo to Supabase Storage
 async function uploadPhoto(partId, dataUrl) {
   const blob = await (await fetch(dataUrl)).blob();
   const fileName = `part-${partId}-${Date.now()}.jpg`;
@@ -1048,7 +975,6 @@ async function uploadPhoto(partId, dataUrl) {
   return data.publicUrl;
 }
 
-//Delete a photo from Supabase Storage
 async function deletePhoto(url) {
   if (!url) return;
   const fileName = url.split('/').pop();
@@ -1059,21 +985,16 @@ async function deletePhoto(url) {
 // DASHBOARD
 // =============================================
 
-//Load all dashboard components
 async function loadDashboardData() {
-  // Clear existing chart to prevent "straight line" issue
   if (usageChart) {
     usageChart.destroy();
     usageChart = null;
   }
 
-  // Show skeleton immediately
   showDashboardSkeleton();
 
-  // Small delay to ensure skeleton renders (200ms makes it visible)
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  // Now load real data
   await updateKPICards();
   await updateUsageTrendsChart();
   await updateTopUsedParts();
@@ -1081,8 +1002,6 @@ async function loadDashboardData() {
   await updateRecentActivity();
 }
 
-//Update KPI cards with current statistics
-//Update KPI cards with current statistics
 async function updateKPICards() {
   const total = parts.length;
   const low = parts.filter((p) => p.current_qty < p.baseline_qty).length;
@@ -1098,7 +1017,6 @@ async function updateKPICards() {
   monthAgo.setMonth(monthAgo.getMonth() - 1);
   const added = parts.filter((p) => new Date(p.created_at) >= monthAgo).length;
 
-  // Completely rebuild the KPI cards HTML
   const kpiGrid = document.querySelector('.dashboard-kpi-grid');
   if (kpiGrid) {
     kpiGrid.innerHTML = `
@@ -1137,13 +1055,10 @@ async function updateKPICards() {
     `;
   }
 
-  // ATTACH CLICK HANDLERS AFTER CARDS ARE CREATED
   attachKpiCardClickHandlers();
 }
 
-// Separate function to attach click handlers to KPI cards
 function attachKpiCardClickHandlers() {
-  // Total Parts card - opens All Parts tab
   const totalPartsCard = document.querySelector('.kpi-card:first-child');
   if (totalPartsCard) {
     totalPartsCard.style.cursor = 'pointer';
@@ -1152,7 +1067,6 @@ function attachKpiCardClickHandlers() {
     };
   }
 
-  // Low Stock card - opens Need Order tab
   const lowStockCard = document.querySelector('.kpi-card.warning');
   if (lowStockCard) {
     lowStockCard.style.cursor = 'pointer';
@@ -1161,7 +1075,6 @@ function attachKpiCardClickHandlers() {
     };
   }
 
-  // Critical Stock card - opens Critical tab
   const criticalCard = document.querySelector('.kpi-card.critical');
   if (criticalCard) {
     criticalCard.style.cursor = 'pointer';
@@ -1170,7 +1083,6 @@ function attachKpiCardClickHandlers() {
     };
   }
 
-  // Logs card - opens Usage Logs tab
   const logsCard = document.querySelector('.kpi-card:last-child');
   if (logsCard) {
     logsCard.style.cursor = 'pointer';
@@ -1180,12 +1092,9 @@ function attachKpiCardClickHandlers() {
   }
 }
 
-//Update usage trends chart (30 day history)
 async function updateUsageTrendsChart() {
-  // Make sure chart container has canvas
   const chartContainer = document.querySelector('.chart-container');
   if (chartContainer) {
-    // Clear container and add canvas
     chartContainer.innerHTML = '<canvas id="usageTrendsChart"></canvas>';
   }
 
@@ -1213,7 +1122,11 @@ async function updateUsageTrendsChart() {
     }
   });
 
-  if (usageChart) usageChart.destroy();
+  if (usageChart) {
+    usageChart.destroy();
+    usageChart = null;
+  }
+
   usageChart = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
@@ -1239,7 +1152,6 @@ async function updateUsageTrendsChart() {
   });
 }
 
-//Update top 5 most used parts (last 30 days)
 async function updateTopUsedParts() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
   const count = {};
@@ -1276,7 +1188,6 @@ async function updateTopUsedParts() {
     .join('');
 }
 
-//Update low stock alerts section
 async function updateLowStockAlerts() {
   const low = parts
     .filter((p) => p.current_qty < p.baseline_qty)
@@ -1305,7 +1216,6 @@ async function updateLowStockAlerts() {
     .join('');
 }
 
-//Update recent activity feed (last 10 usage logs)
 async function updateRecentActivity() {
   const container = document.getElementById('recentActivityList');
   if (!usageLogs.length) {
@@ -1335,7 +1245,6 @@ async function updateRecentActivity() {
 // RENDER FUNCTIONS
 // =============================================
 
-//Refresh all rendered views
 function refreshAll() {
   renderAllParts();
   renderNeedOrder();
@@ -1343,7 +1252,6 @@ function refreshAll() {
   renderLogs();
 }
 
-//Handle table sorting
 function handleSort(field) {
   if (allSortField === field)
     allSortDirection = allSortDirection === 'asc' ? 'desc' : 'asc';
@@ -1355,7 +1263,6 @@ function handleSort(field) {
   renderAllParts();
 }
 
-//Update sort icon states in table header
 function updateSortIcons() {
   document.querySelectorAll('#tab-all .sortable').forEach((h) => {
     const field = h.getAttribute('data-sort');
@@ -1371,7 +1278,6 @@ function updateSortIcons() {
   });
 }
 
-//Render the All Parts table with pagination and sorting
 function renderAllParts() {
   let filtered = parts.filter(
     (p) =>
@@ -1413,7 +1319,7 @@ function renderAllParts() {
       <td><span class="current-qty-display">${p.current_qty}</span></td>
       <td>${p.baseline_qty}</td>
       <td>${need ? (crit ? '<span class="status-badge status-critical">CRITICAL</span>' : '<span class="status-badge status-warning">Order needed</span>') : '<span class="status-badge status-ok">OK</span>'}</td>
-    </tr>`;
+    </table>`;
       })
       .join('');
   const pageDiv = document.getElementById('allPagination');
@@ -1426,7 +1332,6 @@ function renderAllParts() {
   updateSortIcons();
 }
 
-//Generate pagination HTML
 function renderPagination(page, total, func) {
   if (total <= 1) return '';
   let html = `<button class="page-btn" onclick="${func}(${Math.max(1, page - 1)})">◀</button>`;
@@ -1441,7 +1346,6 @@ function changeAllPage(p) {
   renderAllParts();
 }
 
-//Render the Need Order tab (parts below baseline)
 function renderNeedOrder() {
   let need = parts.filter((p) => p.current_qty < p.baseline_qty);
   if (needState.search)
@@ -1465,12 +1369,11 @@ function renderNeedOrder() {
         <td><span class="current-qty-display">${p.current_qty}</span></td>
         <td>${p.baseline_qty}</td>
         <td style="color:#e76f51;font-weight:600;">${p.baseline_qty - p.current_qty}</td>
-      </tr>`,
+      </table>`,
       )
       .join('');
 }
 
-//Render the Critical tab (parts below 50% of baseline)
 function renderCritical() {
   let critical = parts.filter((p) => p.current_qty < p.baseline_qty * 0.5);
   if (criticalState.search)
@@ -1483,7 +1386,7 @@ function renderCritical() {
   if (!tbody) return;
   if (!critical.length)
     tbody.innerHTML =
-      '<td><td colspan="5" style="text-align:center;padding:30px;">No critical parts<\/td><\/tr>';
+      '<tr><td colspan="5" style="text-align:center;padding:30px;">No critical parts<\/td><\/tr>';
   else
     tbody.innerHTML = critical
       .map(
@@ -1493,13 +1396,12 @@ function renderCritical() {
         <td>${escapeHtml(p.description || '').substring(0, 40)}</td>
         <td><span class="current-qty-display">${p.current_qty}</span></td>
         <td>${p.baseline_qty}</td>
-        <td style="color:#c2410c;font-weight:600;">${Math.round((p.current_qty / p.baseline_qty) * 100)}%<\/td>
-      </table>`,
+        <td style="color:#c2410c;font-weight:600;">${Math.round((p.current_qty / p.baseline_qty) * 100)}%</td>
+      </tr>`,
       )
       .join('');
 }
 
-//Render the Usage Logs tab
 function renderLogs() {
   let filtered = usageLogs.filter(
     (l) =>
@@ -1526,7 +1428,6 @@ function renderLogs() {
 // DETAILS & LOGS MODALS
 // =============================================
 
-//Show part details modal
 function showPartDetails(id) {
   const p = parts.find((x) => x.id === id);
   if (!p) return;
@@ -1558,7 +1459,6 @@ function showPartDetails(id) {
   showModal('partDetailsModal');
 }
 
-//Show usage log details modal
 function showLogDetails(id) {
   const log = usageLogs.find((l) => l.id === id);
   if (!log) return;
@@ -1593,7 +1493,6 @@ function showLogDetails(id) {
   showModal('logDetailsModal');
 }
 
-//Log usage of a part (decrease quantity)
 async function logUsage(partId, qty, note) {
   const part = parts.find((p) => p.id === partId);
   if (!part || qty <= 0 || part.current_qty < qty) {
@@ -1622,7 +1521,6 @@ async function logUsage(partId, qty, note) {
 // EDIT FUNCTIONS
 // =============================================
 
-//Open edit part modal
 function openEditPart(id) {
   if (!(windowCurrentPermissions.canEditParts || isAdmin)) {
     showToast('You do not have permission to edit parts', true);
@@ -1657,7 +1555,6 @@ function openEditPart(id) {
   showModal('editModal');
 }
 
-//Open quick log modal for a specific part
 function openQuickLog(id) {
   const p = parts.find((x) => x.id === id);
   if (!p) return;
@@ -1675,7 +1572,6 @@ function openQuickLog(id) {
   showModal('usageModal');
 }
 
-//Open edit log modal
 function openEditLog(id) {
   if (!(windowCurrentPermissions.canEditLogs || isAdmin)) {
     showToast('You do not have permission to edit logs', true);
@@ -1693,7 +1589,6 @@ function openEditLog(id) {
   showModal('editLogModal');
 }
 
-//Save edited part to database
 async function saveEditPart() {
   const p = parts.find((x) => x.id === currentEditPartId);
   if (!p) return;
@@ -1725,7 +1620,6 @@ async function saveEditPart() {
   }
 }
 
-//Save edited log to database
 async function saveEditLog() {
   const log = usageLogs.find((l) => l.id === currentEditLogId);
   if (!log) return;
@@ -1747,7 +1641,6 @@ async function saveEditLog() {
   }
 }
 
-//Add a new part to inventory
 async function addNewPart() {
   if (!(windowCurrentPermissions.canAddParts || isAdmin)) {
     showToast('You do not have permission to add parts', true);
@@ -1783,7 +1676,6 @@ async function addNewPart() {
   }
 }
 
-//Adjust quantity in edit modal
 function adjustQty(delta) {
   const disp = document.getElementById('editCurrentQtyDisplay');
   let val = parseInt(disp.innerText) + delta;
@@ -1796,7 +1688,6 @@ function adjustQty(delta) {
 // QR SCANNER
 // =============================================
 
-//Open QR scanner modal and initialize scanner
 async function openQrScanner() {
   await stopQrScanner();
   document.getElementById('manualQrInput').value = '';
@@ -1806,10 +1697,14 @@ async function openQrScanner() {
   setTimeout(() => startQrScanner(), 300);
 }
 
-//Start the QR code scanner
 async function startQrScanner() {
   if (!document.getElementById('qr-reader')) return;
-  await stopQrScanner();
+
+  // Stop any existing scanner first to prevent duplicates
+  if (html5QrCode && isScannerActive) {
+    await stopQrScanner();
+  }
+
   const status = document.getElementById('qr-status');
   status.innerHTML =
     '<i class="fas fa-spinner fa-pulse"></i> Starting camera...';
@@ -1830,7 +1725,6 @@ async function startQrScanner() {
   }
 }
 
-//Stop the QR code scanner
 async function stopQrScanner() {
   if (html5QrCode && isScannerActive) {
     try {
@@ -1844,12 +1738,10 @@ async function stopQrScanner() {
   html5QrCode = null;
 }
 
-//Handle successful QR code scan
 async function onQrCodeSuccess(text) {
   await stopQrScanner();
   hideModal('qrScannerModal');
 
-  // Trim whitespace from beginning and end
   const trimmedText = text.trim();
 
   const found = parts.find(
@@ -1859,12 +1751,10 @@ async function onQrCodeSuccess(text) {
     showToast(`✓ Found: ${found.part_number}`);
     showPartDetails(found.id);
   } else {
-    // Replace browser confirm with custom modal
     showCustomConfirm(
       'Part Not Found',
       `Part "${trimmedText}" was not found in inventory. Would you like to create it?`,
       () => {
-        // On confirm - open add part modal with pre-filled part number
         document.getElementById('newPartNumber').value = trimmedText;
         document.getElementById('newDescription').value = '';
         document.getElementById('newLocation').value = '';
@@ -1873,14 +1763,12 @@ async function onQrCodeSuccess(text) {
         showToast('Fill in the details and click Add', false);
       },
       () => {
-        // On cancel - just show toast
         showToast('Part not added', false);
       },
     );
   }
 }
 
-//Manual part lookup by part number
 function manualQrLookup() {
   const val = document.getElementById('manualQrInput').value.trim();
   if (!val) {
@@ -1889,7 +1777,6 @@ function manualQrLookup() {
   }
   closeQrScanner();
 
-  // Trim whitespace from beginning and end
   const trimmedVal = val.trim();
 
   const found = parts.find(
@@ -1899,7 +1786,6 @@ function manualQrLookup() {
     showToast(`✓ Found: ${found.part_number}`);
     showPartDetails(found.id);
   } else {
-    // Replace browser confirm with custom modal
     showCustomConfirm(
       'Part Not Found',
       `Part "${trimmedVal}" was not found in inventory. Would you like to create it?`,
@@ -1918,7 +1804,6 @@ function manualQrLookup() {
   }
 }
 
-//Close QR scanner and modal
 async function closeQrScanner() {
   await stopQrScanner();
   hideModal('qrScannerModal');
@@ -1928,7 +1813,6 @@ async function closeQrScanner() {
 // CAMERA FUNCTIONS
 // =============================================
 
-//Start camera for photo capture
 async function startCamera() {
   await stopCamera();
   try {
@@ -1941,7 +1825,6 @@ async function startCamera() {
   }
 }
 
-//Stop camera stream
 async function stopCamera() {
   if (cameraStream) {
     cameraStream.getTracks().forEach((t) => t.stop());
@@ -1951,7 +1834,6 @@ async function stopCamera() {
   if (video) video.srcObject = null;
 }
 
-//Open camera for editing part photo
 async function openCameraForEdit(partId) {
   pendingPhotoPartId = partId;
   reopenEditAfterPhoto = true;
@@ -1960,7 +1842,6 @@ async function openCameraForEdit(partId) {
   showModal('cameraModal');
 }
 
-//Close camera modal
 async function closeCamera() {
   await stopCamera();
   hideModal('cameraModal');
@@ -1971,9 +1852,15 @@ async function closeCamera() {
   pendingPhotoPartId = null;
 }
 
-//Capture photo from camera and upload
 async function capturePhoto() {
   const video = document.getElementById('camera-video');
+
+  // Fix: Wait for camera to be ready
+  if (video.videoWidth === 0 || video.videoHeight === 0) {
+    showToast('Camera not ready. Please wait a moment.', true);
+    return;
+  }
+
   const canvas = document.getElementById('camera-canvas');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -1995,7 +1882,6 @@ async function capturePhoto() {
   closeCamera();
 }
 
-//Show confirmation modal for photo removal
 function handleRemovePhotoInEdit(partId) {
   pendingPhotoDeletePartId = partId;
   document.getElementById('confirmTitle').innerHTML =
@@ -2008,7 +1894,6 @@ function handleRemovePhotoInEdit(partId) {
   showModal('confirmDeleteModal');
 }
 
-//Execute photo deletion
 async function executePhotoDelete() {
   if (pendingPhotoDeletePartId) {
     const part = parts.find((p) => p.id === pendingPhotoDeletePartId);
@@ -2027,7 +1912,6 @@ async function executePhotoDelete() {
 // REPORT & DELETE FUNCTIONS
 // =============================================
 
-//Show order report modal (parts that need reordering)
 function showOrderReport() {
   const need = parts.filter((p) => p.current_qty < p.baseline_qty);
   const container = document.getElementById('reportListContainer');
@@ -2051,7 +1935,6 @@ function showOrderReport() {
   showModal('orderReportModal');
 }
 
-//Copy order report to clipboard and open ordering system
 function copyOrderAndRedirect() {
   const need = parts.filter((p) => p.current_qty < p.baseline_qty);
   if (!need.length) {
@@ -2073,7 +1956,6 @@ function copyOrderAndRedirect() {
     .catch(() => showToast('Failed to copy', true));
 }
 
-//Show confirmation modal for part deletion
 function showConfirmDeletePart(id) {
   if (!(windowCurrentPermissions.canDeleteParts || isAdmin)) {
     showToast('You do not have permission to delete parts', true);
@@ -2092,7 +1974,6 @@ function showConfirmDeletePart(id) {
   showModal('confirmDeleteModal');
 }
 
-//Show confirmation modal for log deletion
 function showConfirmDeleteLog(id) {
   if (!(windowCurrentPermissions.canDeleteLogs || isAdmin)) {
     showToast('You do not have permission to delete logs', true);
@@ -2111,7 +1992,6 @@ function showConfirmDeleteLog(id) {
   showModal('confirmDeleteModal');
 }
 
-//Execute the pending delete operation (part or log)
 async function executeDelete() {
   if (pendingDeletePartId !== null) {
     const success = await deletePart(pendingDeletePartId);
@@ -2133,7 +2013,6 @@ async function executeDelete() {
   hideModal('confirmDeleteModal');
 }
 
-//Cancel pending delete operation
 function cancelDelete() {
   pendingDeletePartId = null;
   pendingDeleteLogId = null;
@@ -2145,7 +2024,6 @@ function cancelDelete() {
 // ADMIN PANEL
 // =============================================
 
-//Open admin panel modal
 async function openAdminPanel() {
   if (!isAdmin) {
     showToast('Admin access required', true);
@@ -2155,7 +2033,6 @@ async function openAdminPanel() {
   showModal('adminPanelModal');
 }
 
-//Render the admin panel user list
 async function renderAdminPanel() {
   const listDiv = document.getElementById('adminUserList');
   if (!listDiv) return;
@@ -2194,7 +2071,6 @@ async function renderAdminPanel() {
     .join('');
 }
 
-//Open user permissions modal for editing
 window.openUserPermissions = async function (userId) {
   if (!isAdmin) {
     showToast('Admin access required', true);
@@ -2251,7 +2127,6 @@ window.openUserPermissions = async function (userId) {
   showModal('userPermissionsModal');
 };
 
-//Save user permissions to database
 async function saveUserPermissions() {
   if (!currentEditingUser) return;
   if (
@@ -2292,17 +2167,32 @@ async function saveUserPermissions() {
 // EXCEL IMPORT
 // =============================================
 
-//Import parts from Excel/CSV file
 async function importExcel(rows) {
   if (!rows.length) return;
   if (!isAdmin) {
     showToast('Only admins can import Excel files', true);
     return;
   }
+
+  // Check if XLSX is available
+  if (typeof XLSX === 'undefined') {
+    showToast('Excel library not loaded. Please refresh the page.', true);
+    return;
+  }
+
+  // Warning for large files
+  if (rows.length > 2000) {
+    const confirmed = confirm(
+      `You're importing ${rows.length} rows. This may take a moment. Continue?`,
+    );
+    if (!confirmed) return;
+  }
+
   let pIdx = 0,
     dIdx = 1,
     qIdx = 2,
     lIdx = -1;
+
   if (rows[0]) {
     const lower = rows[0].map((h) => String(h).toLowerCase());
     pIdx = lower.findIndex((h) => h.includes('part') || h.includes('number'));
@@ -2318,48 +2208,92 @@ async function importExcel(rows) {
         h.includes('loc') || h.includes('location') || h.includes('position'),
     );
   }
+
   const start =
     rows[0] && String(rows[0][0]).toLowerCase().includes('part') ? 1 : 0;
   let added = 0,
     updated = 0;
-  showSyncIndicator('Importing parts...');
-  for (let i = start; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || row.length < 2) continue;
-    const pn = row[pIdx] ? String(row[pIdx]).trim() : '';
-    if (!pn) continue;
-    const desc = row[dIdx] ? String(row[dIdx]).trim() : '';
-    const qty = parseFloat(row[qIdx]) || 0;
-    const loc = lIdx !== -1 && row[lIdx] ? String(row[lIdx]).trim() : '';
-    const existing = parts.find((p) => p.part_number === pn);
-    if (existing) {
-      await updatePart(existing.id, {
-        description: desc,
-        baseline_qty: qty,
-        location: loc,
-      });
-      existing.description = desc;
-      existing.baseline_qty = qty;
-      if (loc) existing.location = loc;
-      updated++;
-    } else {
-      const newPart = await savePart({
-        part_number: pn,
-        description: desc,
-        current_qty: qty,
-        baseline_qty: qty,
-        location: loc,
-      });
-      if (newPart) parts.push(newPart);
-      added++;
+
+  // Show ONE loading indicator at the beginning
+  showSyncIndicator(`Importing ${rows.length - start} parts...`);
+
+  // Process in batches to prevent UI freeze
+  const BATCH_SIZE = 100;
+  for (let i = start; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, Math.min(i + BATCH_SIZE, rows.length));
+
+    for (const row of batch) {
+      if (!row || row.length < 2) continue;
+      const pn = row[pIdx] ? String(row[pIdx]).trim() : '';
+      if (!pn) continue;
+
+      const desc = row[dIdx] ? String(row[dIdx]).trim() : '';
+      const qty = parseFloat(row[qIdx]) || 0;
+      const loc = lIdx !== -1 && row[lIdx] ? String(row[lIdx]).trim() : '';
+
+      const existing = parts.find((p) => p.part_number === pn);
+
+      if (existing) {
+        // Direct database update without showing toasts
+        const { error } = await supabaseClient
+          .from('parts')
+          .update({
+            description: desc,
+            baseline_qty: qty,
+            location: loc,
+            updated_at: new Date(),
+          })
+          .eq('id', existing.id);
+
+        if (!error) {
+          existing.description = desc;
+          existing.baseline_qty = qty;
+          if (loc) existing.location = loc;
+          updated++;
+        }
+      } else {
+        // Direct database insert without showing toasts
+        const { data, error } = await supabaseClient
+          .from('parts')
+          .insert([
+            {
+              part_number: pn,
+              description: desc || 'New Part',
+              current_qty: qty,
+              baseline_qty: qty,
+              location: loc || '',
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          ])
+          .select();
+
+        if (!error && data && data[0]) {
+          parts.push(data[0]);
+          added++;
+        }
+      }
     }
+
+    // Update progress every batch
+    showSyncIndicator(
+      `Importing... ${Math.min(i + BATCH_SIZE, rows.length)} of ${rows.length}`,
+    );
+
+    // Small delay to let UI breathe
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
+
+  // Hide loading indicator
   hideSyncIndicator();
+
+  // ONE final toast message
+  showToast(`✅ Import complete: ${added} added, ${updated} updated`);
+
+  // Refresh all views
   refreshAll();
-  showToast(`Imported: ${added} new, ${updated} updated`);
 }
 
-//Update part dropdown for usage modal
 function updatePartDropdown(search) {
   const searchLower = search.toLowerCase();
   const filtered = parts.filter(
@@ -2394,7 +2328,6 @@ function updatePartDropdown(search) {
   });
 }
 
-//Edit part from details modal
 function editFromDetails() {
   if (currentDetailsPartId) {
     hideModal('partDetailsModal');
@@ -2402,7 +2335,6 @@ function editFromDetails() {
   }
 }
 
-//Log usage from details modal
 function logFromDetails() {
   if (currentDetailsPartId) {
     hideModal('partDetailsModal');
@@ -2414,7 +2346,6 @@ function logFromDetails() {
 // INITIALIZATION
 // =============================================
 
-//Initialize mobile hamburger menu
 function initMobileMenu() {
   const hamburger = document.getElementById('hamburgerMenu');
   const dropdown = document.getElementById('mobileDropdown');
@@ -2447,7 +2378,6 @@ function initMobileMenu() {
     });
   }
 
-  // Handle desktop tab clicks
   document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.removeEventListener('click', btn._listener);
     const listener = () => {
@@ -2461,7 +2391,6 @@ function initMobileMenu() {
   });
 }
 
-// Initialize quantity controls for usage modal
 function initUsageQuantityControls() {
   const dec = document.getElementById('decrementUsageQty');
   const inc = document.getElementById('incrementUsageQty');
@@ -2480,9 +2409,42 @@ function initUsageQuantityControls() {
 }
 
 // =============================================
-// EVENT LISTENERS
+// EVENT LISTENERS (with debouncing)
 // =============================================
 
+// Debounced search functions for better performance
+const debouncedAllSearch = debounce(() => {
+  allState.search = document
+    .getElementById('allSearchInput')
+    .value.toLowerCase();
+  allState.page = 1;
+  renderAllParts();
+});
+
+const debouncedNeedSearch = debounce(() => {
+  needState.search = document
+    .getElementById('needSearchInput')
+    .value.toLowerCase();
+  renderNeedOrder();
+});
+
+const debouncedCriticalSearch = debounce(() => {
+  criticalState.search = document
+    .getElementById('criticalSearchInput')
+    .value.toLowerCase();
+  renderCritical();
+});
+
+const debouncedLogsSearch = debounce(() => {
+  logsSearch = document.getElementById('logsSearchInput').value.toLowerCase();
+  renderLogs();
+});
+
+const debouncedPartDropdownSearch = debounce((e) => {
+  updatePartDropdown(e.target.value);
+});
+
+// Auth event listeners
 document.getElementById('loginTab')?.addEventListener('click', switchToLogin);
 document
   .getElementById('registerTab')
@@ -2594,7 +2556,7 @@ document
   ?.addEventListener('click', logFromDetails);
 document
   .getElementById('partSearchInput')
-  ?.addEventListener('input', (e) => updatePartDropdown(e.target.value));
+  ?.addEventListener('input', debouncedPartDropdownSearch);
 document
   .getElementById('saveEditLogBtn')
   ?.addEventListener('click', saveEditLog);
@@ -2619,9 +2581,13 @@ document
 document
   .getElementById('closeAdminPanelBtn')
   ?.addEventListener('click', () => hideModal('adminPanelModal'));
+
+// Debounced admin user search
+const debouncedAdminSearch = debounce(() => renderAdminPanel());
 document
   .getElementById('adminUserSearch')
-  ?.addEventListener('input', () => renderAdminPanel());
+  ?.addEventListener('input', debouncedAdminSearch);
+
 document
   .getElementById('savePermissionsBtn')
   ?.addEventListener('click', saveUserPermissions);
@@ -2653,30 +2619,26 @@ document.getElementById('excelUpload')?.addEventListener('change', (e) => {
     r.readAsArrayBuffer(f);
   }
 });
-document.getElementById('allSearchInput')?.addEventListener('input', (e) => {
-  allState.search = e.target.value.toLowerCase();
-  allState.page = 1;
-  renderAllParts();
-});
+
+// Debounced search inputs
+document
+  .getElementById('allSearchInput')
+  ?.addEventListener('input', debouncedAllSearch);
 document.getElementById('allRowsPerPage')?.addEventListener('change', (e) => {
   allState.rows = parseInt(e.target.value);
   allState.page = 1;
   renderAllParts();
 });
-document.getElementById('needSearchInput')?.addEventListener('input', (e) => {
-  needState.search = e.target.value.toLowerCase();
-  renderNeedOrder();
-});
+document
+  .getElementById('needSearchInput')
+  ?.addEventListener('input', debouncedNeedSearch);
 document
   .getElementById('criticalSearchInput')
-  ?.addEventListener('input', (e) => {
-    criticalState.search = e.target.value.toLowerCase();
-    renderCritical();
-  });
-document.getElementById('logsSearchInput')?.addEventListener('input', (e) => {
-  logsSearch = e.target.value.toLowerCase();
-  renderLogs();
-});
+  ?.addEventListener('input', debouncedCriticalSearch);
+document
+  .getElementById('logsSearchInput')
+  ?.addEventListener('input', debouncedLogsSearch);
+
 document
   .querySelectorAll('#tab-all .sortable')
   .forEach((h) =>
@@ -2724,14 +2686,24 @@ document.querySelectorAll('.close-modal').forEach((btn) =>
     else hideModal(id);
   }),
 );
+
+// Fixed window.onclick to prevent duplicate close calls
 window.onclick = (e) => {
-  if (e.target.classList.contains('modal')) {
+  if (
+    e.target.classList.contains('modal') &&
+    !e.target.closest('.modal-card')
+  ) {
     const id = e.target.id;
-    if (id === 'qrScannerModal') closeQrScanner();
-    else if (id === 'cameraModal') closeCamera();
-    else hideModal(id);
+    if (id === 'qrScannerModal' && isScannerActive) {
+      closeQrScanner();
+    } else if (id === 'cameraModal') {
+      closeCamera();
+    } else if (id !== 'qrScannerModal') {
+      hideModal(id);
+    }
   }
 };
+
 document.addEventListener('click', (e) => {
   const dropdown = document.getElementById('partListDropdown');
   const input = document.getElementById('partSearchInput');
@@ -2750,8 +2722,7 @@ document.addEventListener('click', (e) => {
 
 initMobileMenu();
 initUsageQuantityControls();
-initPullToRefresh();
-initHeaderRefresh();
+initHeaderRefresh(); // Double-tap refresh only (pull-to-refresh removed)
 window.changeAllPage = changeAllPage;
 window.showPartDetails = showPartDetails;
 window.showLogDetails = showLogDetails;
@@ -2761,5 +2732,3 @@ window.showFullscreenImage = showFullscreenImage;
 initDarkMode();
 checkSession();
 restoreActiveTab();
-// Initialize modal flag
-window.isModalOpen = false;
