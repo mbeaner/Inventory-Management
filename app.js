@@ -1848,8 +1848,12 @@ async function stopQrScanner() {
 async function onQrCodeSuccess(text) {
   await stopQrScanner();
   hideModal('qrScannerModal');
+
+  // Trim whitespace from beginning and end
+  const trimmedText = text.trim();
+
   const found = parts.find(
-    (p) => p.part_number.toLowerCase() === text.toLowerCase(),
+    (p) => p.part_number.toLowerCase() === trimmedText.toLowerCase(),
   );
   if (found) {
     showToast(`✓ Found: ${found.part_number}`);
@@ -1858,10 +1862,10 @@ async function onQrCodeSuccess(text) {
     // Replace browser confirm with custom modal
     showCustomConfirm(
       'Part Not Found',
-      `Part "${text}" was not found in inventory. Would you like to create it?`,
+      `Part "${trimmedText}" was not found in inventory. Would you like to create it?`,
       () => {
         // On confirm - open add part modal with pre-filled part number
-        document.getElementById('newPartNumber').value = text;
+        document.getElementById('newPartNumber').value = trimmedText;
         document.getElementById('newDescription').value = '';
         document.getElementById('newLocation').value = '';
         document.getElementById('newQuantity').value = 0;
@@ -1884,8 +1888,12 @@ function manualQrLookup() {
     return;
   }
   closeQrScanner();
+
+  // Trim whitespace from beginning and end
+  const trimmedVal = val.trim();
+
   const found = parts.find(
-    (p) => p.part_number.toLowerCase() === val.toLowerCase(),
+    (p) => p.part_number.toLowerCase() === trimmedVal.toLowerCase(),
   );
   if (found) {
     showToast(`✓ Found: ${found.part_number}`);
@@ -1894,9 +1902,9 @@ function manualQrLookup() {
     // Replace browser confirm with custom modal
     showCustomConfirm(
       'Part Not Found',
-      `Part "${val}" was not found in inventory. Would you like to create it?`,
+      `Part "${trimmedVal}" was not found in inventory. Would you like to create it?`,
       () => {
-        document.getElementById('newPartNumber').value = val;
+        document.getElementById('newPartNumber').value = trimmedVal;
         document.getElementById('newDescription').value = '';
         document.getElementById('newLocation').value = '';
         document.getElementById('newQuantity').value = 0;
